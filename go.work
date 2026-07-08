@@ -1,0 +1,9 @@
+go 1.26.4
+
+use (
+	./services/gateway
+	./services/media-service
+	./services/notification-service
+	./services/tweet-service
+	./services/user-service
+)
