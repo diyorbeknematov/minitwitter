@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/yourusername/yourproject/protos/user";
+
+import "google/protobuf/timestamp.proto";
+
+service UserService {
+    rpc Register(RegisterRequest) returns (RegisterResponse);
+    rpc Login(LoginRequest) returns (LoginResponse);
+    rpc RefreshToken(RefreshTokenRequest) returns (LoginResponse);
+
+    rpc GetProfile(GetProfileRequest) returns (User);
+    rpc UpdateProfile(UpdateProfileRequest) returns (User);
+
+    rpc Follow(FollowRequest) returns (FollowResponse);
+    rpc Unfollow(UnfollowRequest) returns (UnfollowResponse);
+
+    rpc GetFollowers(GetFollowersRequest) returns (UsersResponse);
+    rpc GetFollowing(GetFollowingRequest) returns (UsersResponse);
+
+    rpc SearchUsers(SearchUsersRequest) returns (UsersResponse);
+
+    // Internal APIs (other services use these)
+    rpc GetUserById(GetUserByIDRequest) returns (User);
+    rpc GetFollowingIDs(GetFollowingIDsRequest) returns (FollowingIDsResponse);
+}
+
+message User {
+    string id = 1;
+    string username = 2;
+    string email = 3;
+    string name = 4;
+    string bio = 5;
+    string avatar_url = 6;
+
+    uint64 followers_count = 7;
+    uint64 following_count = 8;
+
+    google.protobuf.Timestamp created_at = 9;
+}
+
+message RegisterRequest {
+    string username = 1;
+    string email = 2;
+    string password = 3;
+    string name = 4;
+}
+
+message RegisterResponse {
+    User user = 1;
+    string access_token = 2;
+    string refresh_token = 3;
+}
+
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string access_token = 2;
+    string refresh_token = 3;
+    int64 expires_in = 4; // in seconds
+}
+
+message RefreshTokenRequest {
+    string refresh_token = 1;
+}
+
+message GetProfileRequest {
+  string username = 1;
+}
+
+message UpdateProfileRequest {
+    string user_id = 1;
+    string name = 2;
+    string bio = 3;
+    string avatar_url = 4;
+}
+
+message FollowRequest {
+    string follower_id = 1;
+    string followee_id = 2;
+}
+
+message FollowResponse {
+    bool success = 1;
+}
+
+message UnfollowRequest {
+    string follower_id = 1;
+    string followee_id = 2;
+}
+
+message UnfollowResponse {
+    bool success = 1;
+}
+
+message GetFollowersRequest {
+    string user_id = 1;
+    int32 page = 2;
+    int32 limit = 3;
+}
+
+message GetFollowingRequest {
+    string user_id = 1;
+    int32 page = 2;
+    int32 limit = 3;
+}
+
+message SearchUsersRequest {
+    string query = 1;
+    int32 page = 2;
+    int32 limit = 3;
+}
+
+message UsersResponse {
+    repeated User user = 1;
+    uint64 total = 2;
+}
+
+message GetUserByIDRequest {
+    string id = 1;
+}
+
+message GetFollowingIDsRequest {
+    string id = 1;
+}
+
+message FollowingIDsResponse {
+    repeated string ids = 1;
+}
