@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package media;
+
+option go_package = "github.com/diyorbeknematov/minitwitter/protos/media";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "common/common.proto";
+
+service MediaService {
+    rpc UploadMedia(UploadMediaRequest) returns (UploadMediaResponse);
+    rpc GetMedia(GetMediaRequest) returns (Media);
+    rpc GetMedias(GetMediasRequest) returns (GetMediasResponse);
+    rpc DeleteMedia(DeleteMediaRequest) returns (google.protobuf.Empty);
+}
+
+message Media {
+    string id = 1;
+    string owner_id = 2;
+    string object_key = 3;
+    string url = 4;
+    string original_name = 5;
+    string mime_type = 6;
+    int64 size = 7;
+    string storage_provider = 8;
+
+    google.protobuf.Timestamp created_at = 9;
+}
+
+message UploadMediaRequest {
+    bytes file = 1;
+
+    string filename = 2;
+
+    string mime_type = 3;
+}
+
+message UploadMediaResponse {
+    Media media = 1;
+}
+
+message GetMediaRequest {
+    string media_id = 1;
+}
+
+message GetMediasRequest {
+    repeated string media_ids = 1;
+}
+
+message GetMediasResponse {
+    repeated Media medias = 1;
+}
+
+message DeleteMediaRequest {
+    string media_id = 1;
+}

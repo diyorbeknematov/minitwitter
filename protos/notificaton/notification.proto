@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package notification;
+
+option go_package = "github.com/diyorbeknematov/minitwitter/protos/notification";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "common/common.proto";
+
+service NotificationService {
+    rpc GetNotifications(GetNotificationsRequest)
+        returns (GetNotificationsResponse);
+    
+    rpc GetUnreadCount(google.protobuf.Empty)
+        returns (GetUnreadCountResponse);
+
+    rpc MarkAsRead(MarkAsReadRequest)
+        returns (google.protobuf.Empty);
+
+    rpc MarkAllAsRead(google.protobuf.Empty)
+        returns (google.protobuf.Empty);
+
+    rpc DeleteNotification(DeleteNotificationRequest)
+        returns (google.protobuf.Empty);
+}
+
+message Notification {
+    string id = 1;
+
+    string user_id = 2;
+
+    string actor_id = 3;
+
+    NotificationType type = 4;
+
+    string entity_id = 5; // tweet_id yoki reply_tweet_id
+
+    bool is_read = 6;
+
+    google.protobuf.Timestamp created_at = 7;
+}
+
+enum NotificationType {
+    NOTIFICATION_TYPE_UNSPECIFIED = 0;
+
+    NOTIFICATION_TYPE_FOLLOW = 1;
+    NOTIFICATION_TYPE_LIKE = 2;
+    NOTIFICATION_TYPE_RETWEET = 3;
+    NOTIFICATION_TYPE_REPLY = 4;
+}
+
+message GetNotificationsRequest {
+    common.PaginationRequest pagination = 1;
+}
+
+message GetNotificationsResponse {
+    repeated Notification notifications = 1;
+
+    common.PaginationResponse pagination = 2;
+}
+
+message GetUnreadCountResponse {
+    int64 count = 1;
+}
+
+message MarkAsReadRequest {
+    string notification_id = 1;
+}
+
+message DeleteNotificationRequest {
+    string notification_id = 1;
+}

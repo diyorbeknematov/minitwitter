@@ -2,15 +2,11 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "github.com/yourusername/yourproject/protos/user";
+option go_package = "github.com/diyorbeknematov/minitwitter/protos/user";
 
 import "google/protobuf/timestamp.proto";
 
 service UserService {
-    rpc Register(RegisterRequest) returns (RegisterResponse);
-    rpc Login(LoginRequest) returns (LoginResponse);
-    rpc RefreshToken(RefreshTokenRequest) returns (LoginResponse);
-
     rpc GetProfile(GetProfileRequest) returns (User);
     rpc UpdateProfile(UpdateProfileRequest) returns (User);
 
@@ -39,34 +35,6 @@ message User {
     uint64 following_count = 8;
 
     google.protobuf.Timestamp created_at = 9;
-}
-
-message RegisterRequest {
-    string username = 1;
-    string email = 2;
-    string password = 3;
-    string name = 4;
-}
-
-message RegisterResponse {
-    User user = 1;
-    string access_token = 2;
-    string refresh_token = 3;
-}
-
-message LoginRequest {
-    string email = 1;
-    string password = 2;
-}
-
-message LoginResponse {
-    string access_token = 2;
-    string refresh_token = 3;
-    int64 expires_in = 4; // in seconds
-}
-
-message RefreshTokenRequest {
-    string refresh_token = 1;
 }
 
 message GetProfileRequest {
