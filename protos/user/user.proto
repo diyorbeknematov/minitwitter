@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "github.com/diyorbeknematov/minitwitter/protos/user";
+option go_package = "github.com/diyorbeknematov/minitwitter/gen/go/user";
 
 import "google/protobuf/timestamp.proto";
 
@@ -19,8 +19,8 @@ service UserService {
     rpc SearchUsers(SearchUsersRequest) returns (UsersResponse);
 
     // Internal APIs (other services use these)
-    rpc GetUserById(GetUserByIDRequest) returns (User);
-    rpc GetFollowingIDs(GetFollowingIDsRequest) returns (FollowingIDsResponse);
+    rpc GetUserById(GetUserByIdRequest) returns (User);
+    rpc GetFollowingIds(GetFollowingIdsRequest) returns (FollowingIdsResponse);
 }
 
 message User {
@@ -89,14 +89,14 @@ message UsersResponse {
     uint64 total = 2;
 }
 
-message GetUserByIDRequest {
+message GetUserByIdRequest {
     string id = 1;
 }
 
-message GetFollowingIDsRequest {
+message GetFollowingIdsRequest {
     string id = 1;
 }
 
-message FollowingIDsResponse {
+message FollowingIdsResponse {
     repeated string ids = 1;
 }

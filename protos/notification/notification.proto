@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package notification;
 
-option go_package = "github.com/diyorbeknematov/minitwitter/protos/notification";
+option go_package = "github.com/diyorbeknematov/minitwitter/gen/go/notification";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";

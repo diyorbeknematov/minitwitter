@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package tweet;
 
-option go_package = "github.com/diyorbeknematov/minitwitter/protos/tweet";
+option go_package = "github.com/diyorbeknematov/minitwitter/gen/go/tweet";
 
 import "google/protobuf/timestamp.proto";
 import "common/common.proto";
