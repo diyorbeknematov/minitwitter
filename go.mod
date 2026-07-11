@@ -1,4 +1,4 @@
-module github.com/diyorbeknematov/minitwitter/gen/go
+module github.com/diyorbeknematov/minitwitter
 
 go 1.26.4
 

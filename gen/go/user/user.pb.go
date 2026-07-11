@@ -616,7 +616,7 @@ func (x *SearchUsersRequest) GetLimit() int32 {
 
 type UsersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          []*User                `protobuf:"bytes,1,rep,name=user,proto3" json:"user,omitempty"`
+	Users         []*User                `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
 	Total         uint64                 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -652,9 +652,9 @@ func (*UsersResponse) Descriptor() ([]byte, []int) {
 	return file_user_user_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *UsersResponse) GetUser() []*User {
+func (x *UsersResponse) GetUsers() []*User {
 	if x != nil {
-		return x.User
+		return x.Users
 	}
 	return nil
 }
@@ -848,10 +848,10 @@ const file_user_user_proto_rawDesc = "" +
 	"\x12SearchUsersRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x14\n" +
-	"\x05limit\x18\x03 \x01(\x05R\x05limit\"E\n" +
-	"\rUsersResponse\x12\x1e\n" +
-	"\x04user\x18\x01 \x03(\v2\n" +
-	".user.UserR\x04user\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\"G\n" +
+	"\rUsersResponse\x12 \n" +
+	"\x05users\x18\x01 \x03(\v2\n" +
+	".user.UserR\x05users\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x04R\x05total\"$\n" +
 	"\x12GetUserByIdRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"(\n" +
@@ -906,7 +906,7 @@ var file_user_user_proto_goTypes = []any{
 }
 var file_user_user_proto_depIdxs = []int32{
 	14, // 0: user.User.created_at:type_name -> google.protobuf.Timestamp
-	0,  // 1: user.UsersResponse.user:type_name -> user.User
+	0,  // 1: user.UsersResponse.users:type_name -> user.User
 	1,  // 2: user.UserService.GetProfile:input_type -> user.GetProfileRequest
 	2,  // 3: user.UserService.UpdateProfile:input_type -> user.UpdateProfileRequest
 	3,  // 4: user.UserService.Follow:input_type -> user.FollowRequest

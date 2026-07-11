@@ -85,7 +85,7 @@ message SearchUsersRequest {
 }
 
 message UsersResponse {
-    repeated User user = 1;
+    repeated User users = 1;
     uint64 total = 2;
 }
 

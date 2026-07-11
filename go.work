@@ -1,7 +1,7 @@
 go 1.26.4
 
 use (
-	./gen/go
+	.
 	./services/gateway
 	./services/media-service
 	./services/notification-service
