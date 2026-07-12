@@ -2,11 +2,10 @@ package postgres
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/diyorbek/minitwitter/services/user-service/internal/models"
+	"github.com/diyorbek/minitwitter/services/user-service/pkg/apperror"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -15,7 +14,7 @@ type userRepo struct {
 	db *sqlx.DB
 }
 
-func NewAuthRepo(db *sqlx.DB) *userRepo {
+func NewUserRepo(db *sqlx.DB) *userRepo {
 	return &userRepo{
 		db: db,
 	}
@@ -46,7 +45,11 @@ func (r *userRepo) Create(ctx context.Context, user *models.User) error {
 		&user.UpdatedAt,
 	)
 
-	return err
+	if err != nil {
+		return apperror.Wrap("repository", "CreateUser", "failed to create user", err)
+	}
+
+	return nil
 }
 
 func (r *userRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
@@ -73,7 +76,7 @@ func (r *userRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.User, err
 		user.AvatarMediaID,
 	)
 	if err != nil {
-		return nil, err
+		return nil, apperror.Wrap("repository", "GetUserByID", "failed to get user by id", err)
 	}
 
 	return &user, nil
@@ -98,7 +101,7 @@ func (r *userRepo) GetByEmail(ctx context.Context, email string) (*models.User, 
 		&user.Username,
 		&user.PasswordHash,
 	); err != nil {
-		return nil, err
+		return nil, apperror.Wrap("repository", "GetUserByEmail", "failed to get user by email", err)
 	}
 
 	return &user, nil
@@ -129,13 +132,13 @@ func (r *userRepo) GetByUsername(ctx context.Context, username string) (*models.
 		user.AvatarMediaID,
 		&user.CreatedAt,
 	); err != nil {
-		return nil, err
+		return nil, apperror.Wrap("repository", "GetUserByUsername", "failed to get user by username", err)
 	}
 
 	return &user, nil
 }
 
-func (r *userRepo) Search(ctx context.Context, search string, page, limit int) ([]models.User, int, error) {
+func (r *userRepo) Search(ctx context.Context, search string, offset, limit int) ([]models.User, int, error) {
 	baseQuery := `
 		SELECT 
 			id,
@@ -149,8 +152,8 @@ func (r *userRepo) Search(ctx context.Context, search string, page, limit int) (
 	conditions := []string{}
 
 	params := map[string]any{
-		"limit": limit,
-		"page":  page,
+		"limit":  limit,
+		"offset": offset,
 	}
 
 	// Add search condition
@@ -172,7 +175,7 @@ func (r *userRepo) Search(ctx context.Context, search string, page, limit int) (
 	users := []models.User{}
 	rows, err := r.db.NamedQuery(baseQuery, params)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, apperror.Wrap("repository", "SearchUser", "failed to execute named query", err)
 	}
 	defer rows.Close()
 
@@ -184,7 +187,7 @@ func (r *userRepo) Search(ctx context.Context, search string, page, limit int) (
 			&user.Name,
 			user.AvatarMediaID,
 		); err != nil {
-			return nil, 0, err
+			return nil, 0, apperror.Wrap("repository", "SearchUser", "failed to scan row", err)
 		}
 
 		users = append(users, user)
@@ -194,12 +197,67 @@ func (r *userRepo) Search(ctx context.Context, search string, page, limit int) (
 	var total int
 	countQuery, countArgs, err := sqlx.Named(countQuery, params)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, apperror.Wrap("repository", "SearchUser", "failed to execute named query", err)
 	}
 	countQuery = r.db.Rebind(countQuery)
 
 	if err := r.db.Get(&total, countQuery, countArgs...); err != nil {
-		return nil, 0, err
+		return nil, 0, apperror.Wrap("repository", "SearchUser", "failed to get total count", err)
+	}
+
+	return users, total, nil
+}
+
+func (r *userRepo) GetUserFollowers(ctx context.Context, userID uuid.UUID, limit, offset int) ([]models.User, int, error) {
+	baseQuery := `
+		SELECT 
+			u.id,
+			u.username,
+			u.name,
+			u.avatar_media_id
+		FROM users AS u
+		INNER JOIN follows AS f 
+			ON u.id = f.follower_id
+		WHERE f.following_id = $1
+		LIMIT $2 OFFSET $3;
+	`
+	countQuery := `
+		SELECT
+			COUNT(*)
+		FROM users AS u
+		INNER JOIN follows AS f
+			ON u.id = f.follower_id
+		WHERE f.following_id = $1
+	`
+
+	var users []models.User
+	rows, err := r.db.Query(baseQuery, userID, limit, offset)
+	if err != nil {
+		return []models.User{}, 0, apperror.Wrap("repository", "GetUserFollers", "failed to get followers", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		if err = rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Name,
+			user.AvatarMediaID,
+		); err != nil {
+			return []models.User{}, 0, apperror.Wrap("repository", "GetUserFallowers", "failed to scan rows", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return []models.User{}, 0, apperror.Wrap("repository", "GetUserFollowers", "failed to get users", err)
+	}
+
+	var total int
+	if err = r.db.QueryRow(countQuery, userID).Scan(&total); err != nil {
+		return []models.User{}, 0, apperror.Wrap("repository", "GetUserFollowers", "failed to get total count", err)
 	}
 
 	return users, total, nil
@@ -227,16 +285,16 @@ func (r *userRepo) Update(ctx context.Context, user *models.User) error {
 		user.UpdatedAt,
 	)
 	if err != nil {
-		return err
+		return apperror.Wrap("repository", "UserUpdate", "failed to update user", err)
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
-		return errors.New("failed to get rows affected: " + err.Error())
+		return apperror.Wrap("repository", "UserUpdate", "failed to get rows effected", err)
 	}
 
 	if rows == 0 {
-		return fmt.Errorf("no rows affected")
+		return apperror.Wrap("repository", "UserUpdate", "no rows affected to user update", err)
 	}
 
 	return nil
@@ -252,16 +310,16 @@ func (r *userRepo) Delete(ctx context.Context, id uuid.UUID) error {
 
 	res, err := r.db.Exec(query, id)
 	if err != nil {
-		return err
+		return apperror.Wrap("repository", "UserDelete", "failed to delete user", err)
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
-		return errors.New("failed to get rows affected: " + err.Error())
+		return apperror.Wrap("repository", "UserDelete", "failed to get rows effected", err)
 	}
 
 	if rows == 0 {
-		return fmt.Errorf("no rows affected")
+		return apperror.Wrap("repository", "UserDelete", "no rows effected on user delete", err)
 	}
 
 	return nil

@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     token_hash VARCHAR(255) NOT NULL UNIQUE,
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    revoked_at TIMESTAMPTZ,
 
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
