@@ -4,6 +4,8 @@ package auth;
 
 option go_package = "github.com/diyorbeknematov/minitwitter/gen/go/auth";
 
+import "google/protobuf/timestamp.proto";
+
 service AuthService {
     rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc Login(LoginRequest) returns (LoginResponse);
@@ -30,7 +32,7 @@ message LoginRequest {
 message LoginResponse {
     string access_token = 2;
     string refresh_token = 3;
-    int64 expires_in = 4; // in seconds
+    google.protobuf.Timestamp expires_at = 4; // in seconds
 }
 
 message RefreshTokenRequest {

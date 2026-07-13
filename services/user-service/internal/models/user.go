@@ -17,3 +17,8 @@ type User struct {
 	CreatedAt     time.Time  `db:"created_at"`
 	UpdatedAt     time.Time  `db:"updated_at"`
 }
+
+type Token struct {
+	TokenStr     string    `json:"token"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
