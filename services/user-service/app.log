@@ -1,0 +1,5 @@
+{"time":"2026-07-14T23:03:48.140538384+05:00","level":"ERROR","msg":"failed to create app","error":"[app:New] failed to create tcp listener: listen tcp: address 50051: missing port in address"}
+{"time":"2026-07-14T23:07:03.385474032+05:00","level":"INFO","msg":"gRPC server started","address":"50051"}
+{"time":"2026-07-14T23:08:49.584221113+05:00","level":"INFO","msg":"shutting down..."}
+{"time":"2026-07-14T23:08:49.58997389+05:00","level":"INFO","msg":"gRPC server stopped"}
+{"time":"2026-07-14T23:08:49.590213939+05:00","level":"INFO","msg":"database connection closed"}

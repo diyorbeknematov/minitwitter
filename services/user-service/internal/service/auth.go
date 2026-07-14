@@ -20,6 +20,8 @@ type authService struct {
 	repo   *repository.Repository
 	cfg    *config.Config
 	logger *slog.Logger
+
+	auth.UnimplementedAuthServiceServer
 }
 
 func NewAuthService(repo *repository.Repository, cfg *config.Config, logger *slog.Logger) *authService {

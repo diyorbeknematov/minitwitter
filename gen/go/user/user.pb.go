@@ -245,7 +245,7 @@ func (x *UpdateProfileRequest) GetAvatarUrl() string {
 type FollowRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FollowerId    string                 `protobuf:"bytes,1,opt,name=follower_id,json=followerId,proto3" json:"follower_id,omitempty"`
-	FolloweeId    string                 `protobuf:"bytes,2,opt,name=followee_id,json=followeeId,proto3" json:"followee_id,omitempty"`
+	FollowingId   string                 `protobuf:"bytes,2,opt,name=following_id,json=followingId,proto3" json:"following_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -287,9 +287,9 @@ func (x *FollowRequest) GetFollowerId() string {
 	return ""
 }
 
-func (x *FollowRequest) GetFolloweeId() string {
+func (x *FollowRequest) GetFollowingId() string {
 	if x != nil {
-		return x.FolloweeId
+		return x.FollowingId
 	}
 	return ""
 }
@@ -341,7 +341,7 @@ func (x *FollowResponse) GetSuccess() bool {
 type UnfollowRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FollowerId    string                 `protobuf:"bytes,1,opt,name=follower_id,json=followerId,proto3" json:"follower_id,omitempty"`
-	FolloweeId    string                 `protobuf:"bytes,2,opt,name=followee_id,json=followeeId,proto3" json:"followee_id,omitempty"`
+	FollowingId   string                 `protobuf:"bytes,2,opt,name=following_id,json=followingId,proto3" json:"following_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -383,9 +383,9 @@ func (x *UnfollowRequest) GetFollowerId() string {
 	return ""
 }
 
-func (x *UnfollowRequest) GetFolloweeId() string {
+func (x *UnfollowRequest) GetFollowingId() string {
 	if x != nil {
-		return x.FolloweeId
+		return x.FollowingId
 	}
 	return ""
 }
@@ -822,19 +822,17 @@ const file_user_user_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
 	"\x03bio\x18\x03 \x01(\tR\x03bio\x12\x1d\n" +
 	"\n" +
-	"avatar_url\x18\x04 \x01(\tR\tavatarUrl\"Q\n" +
+	"avatar_url\x18\x04 \x01(\tR\tavatarUrl\"S\n" +
 	"\rFollowRequest\x12\x1f\n" +
 	"\vfollower_id\x18\x01 \x01(\tR\n" +
-	"followerId\x12\x1f\n" +
-	"\vfollowee_id\x18\x02 \x01(\tR\n" +
-	"followeeId\"*\n" +
+	"followerId\x12!\n" +
+	"\ffollowing_id\x18\x02 \x01(\tR\vfollowingId\"*\n" +
 	"\x0eFollowResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"S\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"U\n" +
 	"\x0fUnfollowRequest\x12\x1f\n" +
 	"\vfollower_id\x18\x01 \x01(\tR\n" +
-	"followerId\x12\x1f\n" +
-	"\vfollowee_id\x18\x02 \x01(\tR\n" +
-	"followeeId\",\n" +
+	"followerId\x12!\n" +
+	"\ffollowing_id\x18\x02 \x01(\tR\vfollowingId\",\n" +
 	"\x10UnfollowResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"X\n" +
 	"\x13GetFollowersRequest\x12\x17\n" +

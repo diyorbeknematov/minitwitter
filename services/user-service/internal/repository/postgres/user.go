@@ -263,6 +263,64 @@ func (r *userRepo) GetUserFollowers(ctx context.Context, userID uuid.UUID, limit
 	return users, total, nil
 }
 
+func (r *userRepo) GetUserFollowing(ctx context.Context, userID uuid.UUID, limit, offset int) ([]models.User, int, error) {
+	baseQuery := `
+		SELECT
+			u.id,
+			u.username,
+			u.name,
+			u.avatar_media_id
+		FROM users AS u
+		INNER JOIN follows AS f
+			ON u.id = f.following_id
+		WHERE f.follower_id = $1
+		LIMIT $2 OFFSET $3;
+	`
+
+	countQuery := `
+		SELECT
+			COUNT(*)
+		FROM users AS u
+		INNER JOIN follows AS f
+			ON u.id = f.following_id
+		WHERE f.follower_id = $1;
+	`
+
+	var users []models.User
+
+	rows, err := r.db.QueryContext(ctx, baseQuery, userID, limit, offset)
+	if err != nil {
+		return nil, 0, apperror.Wrap("repository", "GetUserFollowing", "failed to get following users", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+
+		if err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Name,
+			&user.AvatarMediaID,
+		); err != nil {
+			return nil, 0, apperror.Wrap("repository", "GetUserFollowing", "failed to scan row", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, apperror.Wrap("repository", "GetUserFollowing", "rows iteration failed", err)
+	}
+
+	var total int
+	if err := r.db.QueryRowContext(ctx, countQuery, userID).Scan(&total); err != nil {
+		return nil, 0, apperror.Wrap("repository", "GetUserFollowing", "failed to get following count", err)
+	}
+
+	return users, total, nil
+}
+
 func (r *userRepo) Update(ctx context.Context, user *models.User) error {
 	query := `
 		UPDATE users

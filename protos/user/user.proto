@@ -50,7 +50,7 @@ message UpdateProfileRequest {
 
 message FollowRequest {
     string follower_id = 1;
-    string followee_id = 2;
+    string following_id = 2;
 }
 
 message FollowResponse {
@@ -59,7 +59,7 @@ message FollowResponse {
 
 message UnfollowRequest {
     string follower_id = 1;
-    string followee_id = 2;
+    string following_id = 2;
 }
 
 message UnfollowResponse {
