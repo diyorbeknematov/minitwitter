@@ -26,9 +26,10 @@ func (r *userRepo) Create(ctx context.Context, user *models.User) error {
             username,
             email,
             password_hash,
-            name
+            name,
+			updated_at
         )
-        VALUES ($1, $2, $3, $4)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING id, created_at, updated_at;
     `
 
@@ -39,6 +40,7 @@ func (r *userRepo) Create(ctx context.Context, user *models.User) error {
 		user.Email,
 		user.PasswordHash,
 		user.Name,
+		user.UpdatedAt,
 	).Scan(
 		&user.ID,
 		&user.CreatedAt,

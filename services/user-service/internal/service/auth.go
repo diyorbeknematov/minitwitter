@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
+	"time"
 
 	"github.com/diyorbek/minitwitter/services/user-service/internal/config"
 	"github.com/diyorbek/minitwitter/services/user-service/internal/models"
@@ -57,6 +58,7 @@ func (s *authService) Register(ctx context.Context, req *auth.RegisterRequest) (
 		Email:        req.GetEmail(),
 		PasswordHash: hashedPassword,
 		Name:         req.GetName(),
+		UpdatedAt:    time.Now(),
 	}
 	err = s.repo.UserRepo.Create(ctx, user)
 
