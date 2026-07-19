@@ -77,7 +77,7 @@ message GetTweetsByUserResponse {
 }
 
 message GetTimelineRequest {
-  string user_id = 1;
+  repeated string user_ids = 1;
   common.PaginationRequest pagination = 2;
 }
 

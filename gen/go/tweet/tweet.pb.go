@@ -490,7 +490,7 @@ func (x *GetTweetsByUserResponse) GetPagination() *common.PaginationResponse {
 
 type GetTimelineRequest struct {
 	state         protoimpl.MessageState    `protogen:"open.v1"`
-	UserId        string                    `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserIds       []string                  `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
 	Pagination    *common.PaginationRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -526,11 +526,11 @@ func (*GetTimelineRequest) Descriptor() ([]byte, []int) {
 	return file_tweet_tweet_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *GetTimelineRequest) GetUserId() string {
+func (x *GetTimelineRequest) GetUserIds() []string {
 	if x != nil {
-		return x.UserId
+		return x.UserIds
 	}
-	return ""
+	return nil
 }
 
 func (x *GetTimelineRequest) GetPagination() *common.PaginationRequest {
@@ -809,9 +809,9 @@ const file_tweet_tweet_proto_rawDesc = "" +
 	"\x06tweets\x18\x01 \x03(\v2\f.tweet.TweetR\x06tweets\x12:\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1a.common.PaginationResponseR\n" +
-	"pagination\"h\n" +
-	"\x12GetTimelineRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x129\n" +
+	"pagination\"j\n" +
+	"\x12GetTimelineRequest\x12\x19\n" +
+	"\buser_ids\x18\x01 \x03(\tR\auserIds\x129\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x19.common.PaginationRequestR\n" +
 	"pagination\"w\n" +
