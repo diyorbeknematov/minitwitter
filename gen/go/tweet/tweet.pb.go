@@ -595,6 +595,7 @@ func (x *GetTimelineResponse) GetPagination() *common.PaginationResponse {
 type LikeTweetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TweetId       string                 `protobuf:"bytes,1,opt,name=tweet_id,json=tweetId,proto3" json:"tweet_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -636,9 +637,17 @@ func (x *LikeTweetRequest) GetTweetId() string {
 	return ""
 }
 
+func (x *LikeTweetRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 type UnlikeTweetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TweetId       string                 `protobuf:"bytes,1,opt,name=tweet_id,json=tweetId,proto3" json:"tweet_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -680,9 +689,17 @@ func (x *UnlikeTweetRequest) GetTweetId() string {
 	return ""
 }
 
+func (x *UnlikeTweetRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 type RetweetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TweetId       string                 `protobuf:"bytes,1,opt,name=tweet_id,json=tweetId,proto3" json:"tweet_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -724,9 +741,17 @@ func (x *RetweetRequest) GetTweetId() string {
 	return ""
 }
 
+func (x *RetweetRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 type UndoRetweetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TweetId       string                 `protobuf:"bytes,1,opt,name=tweet_id,json=tweetId,proto3" json:"tweet_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -764,6 +789,13 @@ func (*UndoRetweetRequest) Descriptor() ([]byte, []int) {
 func (x *UndoRetweetRequest) GetTweetId() string {
 	if x != nil {
 		return x.TweetId
+	}
+	return ""
+}
+
+func (x *UndoRetweetRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
 	}
 	return ""
 }
@@ -819,15 +851,19 @@ const file_tweet_tweet_proto_rawDesc = "" +
 	"\x06tweets\x18\x01 \x03(\v2\f.tweet.TweetR\x06tweets\x12:\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1a.common.PaginationResponseR\n" +
-	"pagination\"-\n" +
+	"pagination\"F\n" +
 	"\x10LikeTweetRequest\x12\x19\n" +
-	"\btweet_id\x18\x01 \x01(\tR\atweetId\"/\n" +
+	"\btweet_id\x18\x01 \x01(\tR\atweetId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"H\n" +
 	"\x12UnlikeTweetRequest\x12\x19\n" +
-	"\btweet_id\x18\x01 \x01(\tR\atweetId\"+\n" +
+	"\btweet_id\x18\x01 \x01(\tR\atweetId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"D\n" +
 	"\x0eRetweetRequest\x12\x19\n" +
-	"\btweet_id\x18\x01 \x01(\tR\atweetId\"/\n" +
+	"\btweet_id\x18\x01 \x01(\tR\atweetId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"H\n" +
 	"\x12UndoRetweetRequest\x12\x19\n" +
-	"\btweet_id\x18\x01 \x01(\tR\atweetId2\x9e\x05\n" +
+	"\btweet_id\x18\x01 \x01(\tR\atweetId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId2\x9e\x05\n" +
 	"\fTweetService\x12D\n" +
 	"\vCreateTweet\x12\x19.tweet.CreateTweetRequest\x1a\x1a.tweet.CreateTweetResponse\x12@\n" +
 	"\vUpdateTweet\x12\x19.tweet.UpdateTweetRequest\x1a\x16.google.protobuf.Empty\x12@\n" +

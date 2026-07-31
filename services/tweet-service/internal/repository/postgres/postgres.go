@@ -5,6 +5,8 @@ import (
 
 	"github.com/diyorbeknematov/minitwitter/services/tweet-service/internal/config"
 	"github.com/jmoiron/sqlx"
+
+	_ "github.com/lib/pq"
 )
 
 func ConnectionDB(cfg *config.Config) (*sqlx.DB, error) {

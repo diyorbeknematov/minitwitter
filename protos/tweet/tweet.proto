@@ -88,16 +88,20 @@ message GetTimelineResponse {
 
 message LikeTweetRequest {
     string tweet_id = 1;
+    string user_id = 2;
 }
 
 message UnlikeTweetRequest {
     string tweet_id = 1;
+    string user_id = 2;
 }
 
 message RetweetRequest {
     string tweet_id = 1;
+    string user_id = 2;
 }
 
 message UndoRetweetRequest {
     string tweet_id = 1;
+    string user_id= 2;
 }

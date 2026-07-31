@@ -130,7 +130,7 @@ func (r *tweetRepo) GetByUser(ctx context.Context, userID string, limit, offset 
 	return tweets, total, nil
 }
 
-func (r *tweetRepo) Retweet(ctx context.Context, retweet models.Retweet) error {
+func (r *tweetRepo) CreateRetweet(ctx context.Context, retweet models.Retweet) error {
 	query := `
 		INSERT INTO retweets (
 			tweet_id,
@@ -152,24 +152,25 @@ func (r *tweetRepo) Retweet(ctx context.Context, retweet models.Retweet) error {
 	return nil
 }
 
-func (r *tweetRepo) UndoRetweet(ctx context.Context, tweetID string) error {
+func (r *tweetRepo) DeleteRetweet(ctx context.Context, tweetID, userID string) error {
 	query := `
 		DELETE FROM retweets
-		WHERE tweet_id = $1
+		WHERE tweet_id = $1 
+			AND user_id = $2;
 	`
 
-	res, err := r.db.Exec(query, tweetID)
+	res, err := r.db.Exec(query, tweetID, userID)
 	if err != nil {
-		return apperror.Wrap("repository", "UndoRetweet", "failed to undoretweet a tweet", err)
+		return apperror.Wrap("repository", "DeleteRetweet", "failed to delete retweet", err)
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
-		return apperror.Wrap("repository", "UndoRetweet", "failed to get rows effected", err)
+		return apperror.Wrap("repository", "DeleteRetweet", "failed to get rows effected", err)
 	}
 
 	if rows == 0 {
-		return apperror.Wrap("repository", "Undoretweet", "no rows affected to undoretweet", err)
+		return apperror.Wrap("repository", "DeleteRetweet", "no rows affected to delete retweet", err)
 	}
 
 	return nil
