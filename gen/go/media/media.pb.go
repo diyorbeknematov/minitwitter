@@ -23,6 +23,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type MediaCategory int32
+
+const (
+	MediaCategory_MEDIA_CATEGORY_UNSPECIFIED MediaCategory = 0
+	MediaCategory_TWEET                      MediaCategory = 1
+	MediaCategory_AVATAR                     MediaCategory = 2
+)
+
+// Enum value maps for MediaCategory.
+var (
+	MediaCategory_name = map[int32]string{
+		0: "MEDIA_CATEGORY_UNSPECIFIED",
+		1: "TWEET",
+		2: "AVATAR",
+	}
+	MediaCategory_value = map[string]int32{
+		"MEDIA_CATEGORY_UNSPECIFIED": 0,
+		"TWEET":                      1,
+		"AVATAR":                     2,
+	}
+)
+
+func (x MediaCategory) Enum() *MediaCategory {
+	p := new(MediaCategory)
+	*p = x
+	return p
+}
+
+func (x MediaCategory) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MediaCategory) Descriptor() protoreflect.EnumDescriptor {
+	return file_media_media_proto_enumTypes[0].Descriptor()
+}
+
+func (MediaCategory) Type() protoreflect.EnumType {
+	return &file_media_media_proto_enumTypes[0]
+}
+
+func (x MediaCategory) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MediaCategory.Descriptor instead.
+func (MediaCategory) EnumDescriptor() ([]byte, []int) {
+	return file_media_media_proto_rawDescGZIP(), []int{0}
+}
+
 type Media struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -133,9 +182,10 @@ func (x *Media) GetCreatedAt() *timestamppb.Timestamp {
 
 type UploadMediaRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	File          []byte                 `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
-	Filename      string                 `protobuf:"bytes,2,opt,name=filename,proto3" json:"filename,omitempty"`
-	MimeType      string                 `protobuf:"bytes,3,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
+	OwnerId       string                 `protobuf:"bytes,1,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	File          []byte                 `protobuf:"bytes,2,opt,name=file,proto3" json:"file,omitempty"`
+	Filename      string                 `protobuf:"bytes,3,opt,name=filename,proto3" json:"filename,omitempty"`
+	Category      MediaCategory          `protobuf:"varint,4,opt,name=category,proto3,enum=media.MediaCategory" json:"category,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -170,6 +220,13 @@ func (*UploadMediaRequest) Descriptor() ([]byte, []int) {
 	return file_media_media_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *UploadMediaRequest) GetOwnerId() string {
+	if x != nil {
+		return x.OwnerId
+	}
+	return ""
+}
+
 func (x *UploadMediaRequest) GetFile() []byte {
 	if x != nil {
 		return x.File
@@ -184,11 +241,11 @@ func (x *UploadMediaRequest) GetFilename() string {
 	return ""
 }
 
-func (x *UploadMediaRequest) GetMimeType() string {
+func (x *UploadMediaRequest) GetCategory() MediaCategory {
 	if x != nil {
-		return x.MimeType
+		return x.Category
 	}
-	return ""
+	return MediaCategory_MEDIA_CATEGORY_UNSPECIFIED
 }
 
 type UploadMediaResponse struct {
@@ -427,11 +484,12 @@ const file_media_media_proto_rawDesc = "" +
 	"\x04size\x18\a \x01(\x03R\x04size\x12)\n" +
 	"\x10storage_provider\x18\b \x01(\tR\x0fstorageProvider\x129\n" +
 	"\n" +
-	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"a\n" +
-	"\x12UploadMediaRequest\x12\x12\n" +
-	"\x04file\x18\x01 \x01(\fR\x04file\x12\x1a\n" +
-	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x1b\n" +
-	"\tmime_type\x18\x03 \x01(\tR\bmimeType\"9\n" +
+	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x91\x01\n" +
+	"\x12UploadMediaRequest\x12\x19\n" +
+	"\bowner_id\x18\x01 \x01(\tR\aownerId\x12\x12\n" +
+	"\x04file\x18\x02 \x01(\fR\x04file\x12\x1a\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\x120\n" +
+	"\bcategory\x18\x04 \x01(\x0e2\x14.media.MediaCategoryR\bcategory\"9\n" +
 	"\x13UploadMediaResponse\x12\"\n" +
 	"\x05media\x18\x01 \x01(\v2\f.media.MediaR\x05media\",\n" +
 	"\x0fGetMediaRequest\x12\x19\n" +
@@ -441,7 +499,12 @@ const file_media_media_proto_rawDesc = "" +
 	"\x11GetMediasResponse\x12$\n" +
 	"\x06medias\x18\x01 \x03(\v2\f.media.MediaR\x06medias\"/\n" +
 	"\x12DeleteMediaRequest\x12\x19\n" +
-	"\bmedia_id\x18\x01 \x01(\tR\amediaId2\x88\x02\n" +
+	"\bmedia_id\x18\x01 \x01(\tR\amediaId*F\n" +
+	"\rMediaCategory\x12\x1e\n" +
+	"\x1aMEDIA_CATEGORY_UNSPECIFIED\x10\x00\x12\t\n" +
+	"\x05TWEET\x10\x01\x12\n" +
+	"\n" +
+	"\x06AVATAR\x10\x022\x88\x02\n" +
 	"\fMediaService\x12D\n" +
 	"\vUploadMedia\x12\x19.media.UploadMediaRequest\x1a\x1a.media.UploadMediaResponse\x120\n" +
 	"\bGetMedia\x12\x16.media.GetMediaRequest\x1a\f.media.Media\x12>\n" +
@@ -460,35 +523,38 @@ func file_media_media_proto_rawDescGZIP() []byte {
 	return file_media_media_proto_rawDescData
 }
 
+var file_media_media_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_media_media_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_media_media_proto_goTypes = []any{
-	(*Media)(nil),                 // 0: media.Media
-	(*UploadMediaRequest)(nil),    // 1: media.UploadMediaRequest
-	(*UploadMediaResponse)(nil),   // 2: media.UploadMediaResponse
-	(*GetMediaRequest)(nil),       // 3: media.GetMediaRequest
-	(*GetMediasRequest)(nil),      // 4: media.GetMediasRequest
-	(*GetMediasResponse)(nil),     // 5: media.GetMediasResponse
-	(*DeleteMediaRequest)(nil),    // 6: media.DeleteMediaRequest
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),         // 8: google.protobuf.Empty
+	(MediaCategory)(0),            // 0: media.MediaCategory
+	(*Media)(nil),                 // 1: media.Media
+	(*UploadMediaRequest)(nil),    // 2: media.UploadMediaRequest
+	(*UploadMediaResponse)(nil),   // 3: media.UploadMediaResponse
+	(*GetMediaRequest)(nil),       // 4: media.GetMediaRequest
+	(*GetMediasRequest)(nil),      // 5: media.GetMediasRequest
+	(*GetMediasResponse)(nil),     // 6: media.GetMediasResponse
+	(*DeleteMediaRequest)(nil),    // 7: media.DeleteMediaRequest
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),         // 9: google.protobuf.Empty
 }
 var file_media_media_proto_depIdxs = []int32{
-	7, // 0: media.Media.created_at:type_name -> google.protobuf.Timestamp
-	0, // 1: media.UploadMediaResponse.media:type_name -> media.Media
-	0, // 2: media.GetMediasResponse.medias:type_name -> media.Media
-	1, // 3: media.MediaService.UploadMedia:input_type -> media.UploadMediaRequest
-	3, // 4: media.MediaService.GetMedia:input_type -> media.GetMediaRequest
-	4, // 5: media.MediaService.GetMedias:input_type -> media.GetMediasRequest
-	6, // 6: media.MediaService.DeleteMedia:input_type -> media.DeleteMediaRequest
-	2, // 7: media.MediaService.UploadMedia:output_type -> media.UploadMediaResponse
-	0, // 8: media.MediaService.GetMedia:output_type -> media.Media
-	5, // 9: media.MediaService.GetMedias:output_type -> media.GetMediasResponse
-	8, // 10: media.MediaService.DeleteMedia:output_type -> google.protobuf.Empty
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	8, // 0: media.Media.created_at:type_name -> google.protobuf.Timestamp
+	0, // 1: media.UploadMediaRequest.category:type_name -> media.MediaCategory
+	1, // 2: media.UploadMediaResponse.media:type_name -> media.Media
+	1, // 3: media.GetMediasResponse.medias:type_name -> media.Media
+	2, // 4: media.MediaService.UploadMedia:input_type -> media.UploadMediaRequest
+	4, // 5: media.MediaService.GetMedia:input_type -> media.GetMediaRequest
+	5, // 6: media.MediaService.GetMedias:input_type -> media.GetMediasRequest
+	7, // 7: media.MediaService.DeleteMedia:input_type -> media.DeleteMediaRequest
+	3, // 8: media.MediaService.UploadMedia:output_type -> media.UploadMediaResponse
+	1, // 9: media.MediaService.GetMedia:output_type -> media.Media
+	6, // 10: media.MediaService.GetMedias:output_type -> media.GetMediasResponse
+	9, // 11: media.MediaService.DeleteMedia:output_type -> google.protobuf.Empty
+	8, // [8:12] is the sub-list for method output_type
+	4, // [4:8] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_media_media_proto_init() }
@@ -501,13 +567,14 @@ func file_media_media_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_media_media_proto_rawDesc), len(file_media_media_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_media_media_proto_goTypes,
 		DependencyIndexes: file_media_media_proto_depIdxs,
+		EnumInfos:         file_media_media_proto_enumTypes,
 		MessageInfos:      file_media_media_proto_msgTypes,
 	}.Build()
 	File_media_media_proto = out.File

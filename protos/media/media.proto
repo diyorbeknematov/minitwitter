@@ -27,12 +27,17 @@ message Media {
     google.protobuf.Timestamp created_at = 9;
 }
 
+enum MediaCategory {
+    MEDIA_CATEGORY_UNSPECIFIED = 0;
+    TWEET = 1;
+    AVATAR = 2;
+}
+
 message UploadMediaRequest {
-    bytes file = 1;
-
-    string filename = 2;
-
-    string mime_type = 3;
+    string owner_id = 1;
+    bytes file = 2;
+    string filename = 3;
+    MediaCategory category = 4;
 }
 
 message UploadMediaResponse {
