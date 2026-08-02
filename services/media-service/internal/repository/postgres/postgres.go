@@ -9,9 +9,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func ConnectionDB(cfg *config.Config) (*sqlx.DB, error) {
+func DBConnection(cfg config.DBConfig) (*sqlx.DB, error) {
 	conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name)
 
 	db, err := sqlx.Connect("postgres", conn)
 	if err != nil {

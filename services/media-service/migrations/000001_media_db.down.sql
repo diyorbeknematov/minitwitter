@@ -1,2 +1,2 @@
 -- delete tables
-DROP TABLE IF EXISTS meida;
+DROP TABLE IF EXISTS media;

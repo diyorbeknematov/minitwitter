@@ -1,0 +1,5 @@
+{"time":"2026-08-02T22:11:58.418289224+05:00","level":"ERROR","msg":"failed to create app","error":"[app:New] failed to initialize object storage: Get \"http://localhost:9000/media/?location=\": dial tcp 127.0.0.1:9000: connect: connection refused"}
+{"time":"2026-08-02T22:20:15.994117338+05:00","level":"INFO","msg":"gRPC server started","address":"50051"}
+{"time":"2026-08-02T22:20:47.999913784+05:00","level":"INFO","msg":"shutting down..."}
+{"time":"2026-08-02T22:20:48.001300795+05:00","level":"INFO","msg":"gRPC server stopped"}
+{"time":"2026-08-02T22:20:48.001409817+05:00","level":"ERROR","msg":"shutdown failed","error":"[app:Shutdown] failed to close listener: close tcp [::]:50051: use of closed network connection"}

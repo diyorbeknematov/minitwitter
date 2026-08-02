@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"io"
+	"time"
 )
 
 type ObjectStorage interface {
@@ -16,5 +17,5 @@ type ObjectStorage interface {
 
 	Delete(ctx context.Context, objectName string) error
 
-	PresignedURL(ctx context.Context, objectName string) (string, error)
+	PresignedURL(ctx context.Context, objectName string, urlExpire time.Duration) (string, error)
 }
