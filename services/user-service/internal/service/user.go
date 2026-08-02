@@ -33,7 +33,7 @@ func (s *userService) GetUserById(ctx context.Context, req *user.GetUserByIdRequ
 		return nil, apperror.Wrap("service", "GetUserByID", "failed to parse user id", err)
 	}
 
-	u, err := s.repo.UserRepo.GetByID(ctx, userID)
+	u, err := s.repo.User.GetByID(ctx, userID)
 	if err != nil {
 		return nil, apperror.Wrap("service", "GetUserById", "failed to get user by id", err)
 	}
@@ -50,17 +50,17 @@ func (s *userService) GetUserById(ctx context.Context, req *user.GetUserByIdRequ
 }
 
 func (s *userService) GetProfile(ctx context.Context, req *user.GetProfileRequest) (*user.User, error) {
-	usr, err := s.repo.UserRepo.GetByUsername(ctx, req.Username)
+	usr, err := s.repo.User.GetByUsername(ctx, req.Username)
 	if err != nil {
 		return nil, apperror.Wrap("service", "GetProfile", "failed to get user profile", err)
 	}
 
-	followersCount, err := s.repo.FollowRepo.CountFollowers(ctx, usr.ID)
+	followersCount, err := s.repo.Follow.CountFollowers(ctx, usr.ID)
 	if err != nil {
 		return nil, apperror.Wrap("service", "GetProfile", "failed to get user followers count", err)
 	}
 
-	followingCount, err := s.repo.FollowRepo.CountFollowing(ctx, usr.ID)
+	followingCount, err := s.repo.Follow.CountFollowing(ctx, usr.ID)
 	if err != nil {
 		return nil, apperror.Wrap("service", "GetProfile", "failed to get user following count", err)
 	}
@@ -88,12 +88,12 @@ func (s *userService) UpdateProfile(ctx context.Context, req *user.UpdateProfile
 		return nil, apperror.Wrap("service", "UpdateProfile", "failed to parse avatar media id", err)
 	}
 
-	usr, err := s.repo.UserRepo.GetByID(ctx, userID)
+	usr, err := s.repo.User.GetByID(ctx, userID)
 	if err != nil {
 		return nil, apperror.Wrap("service", "UpdateProfile", "failed to get user by id", err)
 	}
 
-	err = s.repo.UserRepo.Update(ctx, &models.User{
+	err = s.repo.User.Update(ctx, &models.User{
 		ID:            usr.ID,
 		Username:      usr.Username,
 		Email:         usr.Email,
@@ -128,7 +128,7 @@ func (s *userService) Follow(ctx context.Context, req *user.FollowRequest) (*use
 		return nil, apperror.Wrap("service", "Follow", "failed to parse following id", err)
 	}
 
-	err = s.repo.FollowRepo.Create(ctx, &models.Follow{
+	err = s.repo.Follow.Create(ctx, &models.Follow{
 		FollowerID:  followerID,
 		FollowingID: followingID,
 		CreatedAt:   time.Now(),
@@ -153,7 +153,7 @@ func (s *userService) Unfollow(ctx context.Context, req *user.UnfollowRequest) (
 		return nil, apperror.Wrap("service", "UnFollow", "failed to parse following id", err)
 	}
 
-	err = s.repo.FollowRepo.Delete(ctx, &models.Follow{
+	err = s.repo.Follow.Delete(ctx, &models.Follow{
 		FollowerID:  followerID,
 		FollowingID: followingID,
 		CreatedAt:   time.Now(),
@@ -173,7 +173,7 @@ func (s *userService) GetFollowers(ctx context.Context, req *user.GetFollowersRe
 		return nil, apperror.Wrap("service", "GetFollowers", "failed to parse user id", err)
 	}
 
-	users, count, err := s.repo.UserRepo.GetUserFollowers(ctx, userID, int(req.Limit), int(req.Page-1)*int(req.Limit))
+	users, count, err := s.repo.User.GetUserFollowers(ctx, userID, int(req.Limit), int(req.Page-1)*int(req.Limit))
 	if err != nil {
 		return nil, apperror.Wrap("service", "GetFollowers", "failed to get user followers", err)
 	}
@@ -190,7 +190,7 @@ func (s *userService) GetFollowing(ctx context.Context, req *user.GetFollowingRe
 		return nil, apperror.Wrap("service", "GetFollowing", "failed to parse user id", err)
 	}
 
-	users, count, err := s.repo.UserRepo.GetUserFollowing(ctx, userID, int(req.Limit), int(req.Page-1)*int(req.Limit))
+	users, count, err := s.repo.User.GetUserFollowing(ctx, userID, int(req.Limit), int(req.Page-1)*int(req.Limit))
 	if err != nil {
 		return nil, apperror.Wrap("service", "GetFollowing", "failed to get user following", err)
 	}
@@ -202,7 +202,7 @@ func (s *userService) GetFollowing(ctx context.Context, req *user.GetFollowingRe
 }
 
 func (s *userService) SearchUsers(ctx context.Context, req *user.SearchUsersRequest) (*user.UsersResponse, error) {
-	usrs, total, err := s.repo.UserRepo.Search(ctx, req.String(), int(req.Limit), (int(req.Page)-1)*int(req.Limit))
+	usrs, total, err := s.repo.User.Search(ctx, req.String(), int(req.Limit), (int(req.Page)-1)*int(req.Limit))
 	if err != nil {
 		return nil, apperror.Wrap("service", "SearchUsers", "failed to get users by research", err)
 	}
@@ -219,7 +219,7 @@ func (s *userService) GetFollowingIds(ctx context.Context, req *user.GetFollowin
 		return nil, apperror.Wrap("service", "GetFollowingIds", "failed to parse id", err)
 	}
 
-	ids, err := s.repo.FollowRepo.GetFollowingIDs(ctx, userID)
+	ids, err := s.repo.Follow.GetFollowingIDs(ctx, userID)
 	if err != nil {
 		return nil, apperror.Wrap("service", "GetFolliwingIds", "failed to get ids", err)
 	}

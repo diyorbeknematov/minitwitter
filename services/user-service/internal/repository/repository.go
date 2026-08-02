@@ -10,20 +10,20 @@ import (
 )
 
 type Repository struct {
-	UserRepo
-	FollowRepo
-	RefreshTokenRepo
+	User
+	Follow
+	RefreshToken
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		UserRepo: postgres.NewUserRepo(db),
-		FollowRepo: postgres.NewFollowRepo(db),
-		RefreshTokenRepo: postgres.NewRefreshTokenRepo(db),
+		User:         postgres.NewUserRepo(db),
+		Follow:       postgres.NewFollowRepo(db),
+		RefreshToken: postgres.NewRefreshTokenRepo(db),
 	}
 }
 
-type UserRepo interface {
+type User interface {
 	Create(context.Context, *models.User) error
 	GetByID(context.Context, uuid.UUID) (*models.User, error)
 	GetByEmail(context.Context, string) (*models.User, error)
@@ -35,7 +35,7 @@ type UserRepo interface {
 	Delete(context.Context, uuid.UUID) error
 }
 
-type FollowRepo interface {
+type Follow interface {
 	Create(context.Context, *models.Follow) error
 	Delete(context.Context, *models.Follow) error
 	Exists(context.Context, uuid.UUID, uuid.UUID) (bool, error)
@@ -46,7 +46,7 @@ type FollowRepo interface {
 	GetFollowingIDs(context.Context, uuid.UUID) ([]uuid.UUID, error)
 }
 
-type RefreshTokenRepo interface {
+type RefreshToken interface {
 	Create(context.Context, models.RefreshToken) error
 	GetByUserID(context.Context, uuid.UUID) (models.RefreshToken, error)
 	DeleteByUserID(context.Context, uuid.UUID) error

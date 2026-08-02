@@ -34,14 +34,14 @@ func NewAuthService(repo *repository.Repository, cfg *config.Config, logger *slo
 }
 
 func (s *authService) Register(ctx context.Context, req *auth.RegisterRequest) (*auth.RegisterResponse, error) {
-	_, err := s.repo.UserRepo.GetByEmail(ctx, req.GetEmail())
+	_, err := s.repo.User.GetByEmail(ctx, req.GetEmail())
 	if err == nil {
 		return &auth.RegisterResponse{}, apperror.Wrap("service", "Register", "the email is already exists", apperror.ErrEmailExists)
 	} else if !errors.Is(err, sql.ErrNoRows) {
 		return &auth.RegisterResponse{}, apperror.Wrap("service", "Register", "failed to check email exists", err)
 	}
 
-	_, err = s.repo.UserRepo.GetByUsername(ctx, req.GetUsername())
+	_, err = s.repo.User.GetByUsername(ctx, req.GetUsername())
 	if err == nil {
 		return &auth.RegisterResponse{}, apperror.Wrap("service", "Register", "the username is already exists", errors.New("username already exists"))
 	} else if !errors.Is(err, sql.ErrNoRows) {
@@ -60,7 +60,7 @@ func (s *authService) Register(ctx context.Context, req *auth.RegisterRequest) (
 		Name:         req.GetName(),
 		UpdatedAt:    time.Now(),
 	}
-	err = s.repo.UserRepo.Create(ctx, user)
+	err = s.repo.User.Create(ctx, user)
 
 	if err != nil {
 		return &auth.RegisterResponse{}, apperror.Wrap("service", "Register", "failed to create user", err)
@@ -83,7 +83,7 @@ func (s *authService) Register(ctx context.Context, req *auth.RegisterRequest) (
 }
 
 func (s *authService) Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error) {
-	user, err := s.repo.UserRepo.GetByEmail(ctx, req.GetEmail())
+	user, err := s.repo.User.GetByEmail(ctx, req.GetEmail())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return &auth.LoginResponse{}, apperror.Wrap("service", "Login", "User not found to get by email", apperror.ErrNotFound)
@@ -101,7 +101,7 @@ func (s *authService) Login(ctx context.Context, req *auth.LoginRequest) (*auth.
 		return &auth.LoginResponse{}, apperror.Wrap("service", "Login", "failed to generate tokens", err)
 	}
 
-	err = s.repo.RefreshTokenRepo.DeleteByUserID(ctx, user.ID)
+	err = s.repo.RefreshToken.DeleteByUserID(ctx, user.ID)
 	if err != nil {
 		return &auth.LoginResponse{}, apperror.Wrap("service", "Login", "failed to delete refresh token", err)
 	}
@@ -124,7 +124,7 @@ func (s *authService) RefreshToken(ctx context.Context, req *auth.RefreshTokenRe
 		return &auth.LoginResponse{}, apperror.Wrap("service", "RefreshToken", "failed to refresh token", err)
 	}
 
-	refreshToken, err := s.repo.RefreshTokenRepo.GetByUserID(ctx, token.UserID)
+	refreshToken, err := s.repo.RefreshToken.GetByUserID(ctx, token.UserID)
 	if err != nil {
 		return &auth.LoginResponse{}, apperror.Wrap("service", "RefreshToken", "failed to get refresh token from database by user id", err)
 	}
@@ -172,7 +172,7 @@ func (s *authService) saveRefreshToken(ctx context.Context, userID uuid.UUID, to
 		return apperror.Wrap("service", "saveRefreshToken", "failed to hash refresh token", err)
 	}
 
-	return s.repo.RefreshTokenRepo.Create(ctx, models.RefreshToken{
+	return s.repo.RefreshToken.Create(ctx, models.RefreshToken{
 		ID:        uuid.New(),
 		UserID:    userID,
 		TokenHash: hashedToken,
