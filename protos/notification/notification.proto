@@ -9,16 +9,19 @@ import "google/protobuf/empty.proto";
 import "common/common.proto";
 
 service NotificationService {
+    rpc GetNotification(GetNotificationRequest) 
+        returns (Notification);
+
     rpc GetNotifications(GetNotificationsRequest)
         returns (GetNotificationsResponse);
     
-    rpc GetUnreadCount(google.protobuf.Empty)
+    rpc GetUnreadCount(GetUnreadCountRequest)
         returns (GetUnreadCountResponse);
 
     rpc MarkAsRead(MarkAsReadRequest)
         returns (google.protobuf.Empty);
 
-    rpc MarkAllAsRead(google.protobuf.Empty)
+    rpc MarkAllAsRead(MarkAllAsReadRequest)
         returns (google.protobuf.Empty);
 
     rpc DeleteNotification(DeleteNotificationRequest)
@@ -44,14 +47,19 @@ message Notification {
 enum NotificationType {
     NOTIFICATION_TYPE_UNSPECIFIED = 0;
 
-    NOTIFICATION_TYPE_FOLLOW = 1;
-    NOTIFICATION_TYPE_LIKE = 2;
-    NOTIFICATION_TYPE_RETWEET = 3;
-    NOTIFICATION_TYPE_REPLY = 4;
+    FOLLOW = 1;
+    LIKE = 2;
+    RETWEET = 3;
+    REPLY = 4;
+}
+
+message GetNotificationRequest {
+    string id = 1;
 }
 
 message GetNotificationsRequest {
-    common.PaginationRequest pagination = 1;
+    string user_id = 1;
+    common.PaginationRequest pagination = 2;
 }
 
 message GetNotificationsResponse {
@@ -60,14 +68,23 @@ message GetNotificationsResponse {
     common.PaginationResponse pagination = 2;
 }
 
+message GetUnreadCountRequest {
+    string user_id = 1;
+}
+
 message GetUnreadCountResponse {
-    int64 count = 1;
+    string user_id = 1;
+    int64 count = 2;
 }
 
 message MarkAsReadRequest {
-    string notification_id = 1;
+    string id = 1;
+}
+
+message MarkAllAsReadRequest {
+    string user_id = 1;
 }
 
 message DeleteNotificationRequest {
-    string notification_id = 1;
+    string id = 1;
 }
