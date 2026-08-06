@@ -1,0 +1,9 @@
+{"time":"2026-08-06T19:51:42.379857248+05:00","level":"ERROR","msg":"failed to create app","error":"[app:New] failed to connect database: sql: unknown driver \"postgres\" (forgotten import?)"}
+{"time":"2026-08-06T19:53:00.816972841+05:00","level":"INFO","msg":"gRPC server started","port":50051}
+{"time":"2026-08-06T19:53:00.817020611+05:00","level":"INFO","msg":"HTTP server started","port":8080}
+{"time":"2026-08-06T19:54:19.732830878+05:00","level":"INFO","msg":"shutdown signal received, stopping app..."}
+{"time":"2026-08-06T19:54:19.733430667+05:00","level":"INFO","msg":"gRPC server stopped"}
+{"time":"2026-08-06T19:54:19.733566975+05:00","level":"INFO","msg":"HTTP server stopped"}
+{"time":"2026-08-06T19:54:19.733744878+05:00","level":"INFO","msg":"database connection closed"}
+{"time":"2026-08-06T19:54:19.73378533+05:00","level":"WARN","msg":"failed to close grpc listener","error":"close tcp [::]:50051: use of closed network connection"}
+{"time":"2026-08-06T19:54:19.733860285+05:00","level":"INFO","msg":"app stopped gracefully"}
