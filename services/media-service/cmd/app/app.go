@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net"
 
@@ -52,7 +51,7 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	media.RegisterMediaServiceServer(grpcServer, svc)
 
 	// Listener
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.GRPC.Port))
+	listener, err := net.Listen("tcp", cfg.GRPC.Address())
 	if err != nil {
 		return nil, apperror.Wrap("app", "New", "failed to listen on gRPC port", err)
 	}
@@ -68,7 +67,7 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 func (a *App) Run() error {
 	a.logger.Info(
 		"gRPC server started",
-		slog.String("address", a.cfg.GRPC.Port),
+		slog.Int("address", a.cfg.GRPC.Port),
 	)
 
 	return a.grpcServer.Serve(a.listener)

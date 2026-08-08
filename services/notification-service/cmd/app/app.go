@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -62,7 +61,7 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 
 	grpcLn, err := net.Listen(
 		"tcp",
-		fmt.Sprintf(":%d", cfg.Server.GRPCPort),
+		cfg.GRPC.Address(),
 	)
 	if err != nil {
 		_ = db.Close()
@@ -80,7 +79,7 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	mux.Handle("/ws", ws.NewHandler(hub))
 
 	httpServer := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Server.HTTPPort),
+		Addr:    cfg.Server.Address(),
 		Handler: mux,
 	}
 
@@ -99,7 +98,7 @@ func (a *App) Run(ctx context.Context) error {
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		a.logger.Info("gRPC server started", "port", a.cfg.Server.GRPCPort)
+		a.logger.Info("gRPC server started", "port", a.cfg.GRPC.Port)
 
 		if err := a.grpcServer.Serve(a.grpcLn); err != nil {
 			return apperror.Wrap("app", "Run", "grpc server error", err)
@@ -108,7 +107,7 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	g.Go(func() error {
-		a.logger.Info("HTTP server started", "port", a.cfg.Server.HTTPPort)
+		a.logger.Info("HTTP server started", "port", a.cfg.Server.Port)
 
 		if err := a.httpServer.ListenAndServe(); err != nil &&
 			err != http.ErrServerClosed {
@@ -178,6 +177,6 @@ func (a *App) Shutdown(ctx context.Context) error {
 	if err := a.grpcLn.Close(); err != nil {
 		a.logger.Warn("failed to close grpc listener", "error", err)
 	}
-	
+
 	return nil
 }

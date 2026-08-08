@@ -2,7 +2,9 @@ package config
 
 import (
 	"log"
+	"net"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -10,7 +12,8 @@ import (
 )
 
 type GRPCConfig struct {
-	Port string
+	Port int
+	Host string
 }
 
 type DBConfig struct {
@@ -45,7 +48,8 @@ func Load() *Config {
 
 	return &Config{
 		GRPC: GRPCConfig{
-			Port: cast.ToString(getEnv("GRPC_PORT", 50051)),
+			Port: cast.ToInt(getEnv("_MEDIA_GRPC_PORT", 50051)),
+			Host: cast.ToString(getEnv("MEDIA_GRPC_HOST", "localhost")),
 		},
 		DB: DBConfig{
 			Host:     cast.ToString(getEnv("DB_HOST", "localhost")),
@@ -63,6 +67,10 @@ func Load() *Config {
 			PresignedExpiry: cast.ToDuration(getEnv("PRESIGNED_URL_EXPIRY", "72h")),
 		},
 	}
+}
+
+func (c GRPCConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 
 func getEnv(key string, defaultValue interface{}) interface{} {

@@ -2,25 +2,30 @@ package config
 
 import (
 	"log"
+	"net"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cast"
 )
 
+type GRPCConfig struct {
+	Host string
+	Port int
+}
+
+type DBConfig struct {
+	Host     string
+	Name     string
+	Port     string
+	User     string
+	Password string
+}
+
 type Config struct {
-	GRPCPort string
-
-	DBHost     string
-	DBName     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-
-	RedisHost     string
-	RedisPort     string
-	RedisPassword string
-	RedisDB       int
+	GRPC GRPCConfig
+	DB   DBConfig
 }
 
 func ConfigLoad() *Config {
@@ -30,19 +35,23 @@ func ConfigLoad() *Config {
 	}
 
 	return &Config{
-		GRPCPort: cast.ToString(getEnv("GRPC_PORT", "50051")),
+		GRPC: GRPCConfig{
+			Host: cast.ToString(getEnv("TWEET_GRPC_HOST", "localhost")),
+			Port: cast.ToInt(getEnv("MEDIA_GRPC_PORT", 50053)),
+		},
 
-		DBHost:     cast.ToString(getEnv("DB_HOST", "localhost")),
-		DBName:     cast.ToString(getEnv("DB_NAME", "user_service")),
-		DBPort:     cast.ToString(getEnv("DB_PORT", "5432")),
-		DBUser:     cast.ToString(getEnv("DB_USER", "postgres")),
-		DBPassword: cast.ToString(getEnv("DB_PASSWORD", "")),
-
-		RedisHost:     cast.ToString(getEnv("REDIS_HOST", "localhost")),
-		RedisPort:     cast.ToString(getEnv("REDIS_PORT", "6379")),
-		RedisPassword: cast.ToString(getEnv("REDIS_PASSWORD", "")),
-		RedisDB:       cast.ToInt(getEnv("REDIS_DB", 0)),
+		DB: DBConfig{
+			Host:     cast.ToString(getEnv("DB_HOST", "localhost")),
+			Name:     cast.ToString(getEnv("DB_NAME", "user_service")),
+			Port:     cast.ToString(getEnv("DB_PORT", "5432")),
+			User:     cast.ToString(getEnv("DB_USER", "postgres")),
+			Password: cast.ToString(getEnv("DB_PASSWORD", "")),
+		},
 	}
+}
+
+func (c GRPCConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 
 func getEnv(key string, defaultValue interface{}) interface{} {

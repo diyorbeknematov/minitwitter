@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"net"
 
 	"github.com/diyorbek/minitwitter/services/user-service/internal/config"
@@ -31,7 +30,7 @@ type App struct {
 
 func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	// Database
-	db, err := postgres.DBConnection(cfg)
+	db, err := postgres.DBConnection(cfg.DB)
 	if err != nil {
 		return nil, apperror.Wrap("app", "New", "failed to connect to database", err)
 	}
@@ -49,7 +48,7 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	user.RegisterUserServiceServer(grpcServer, svc.User)
 
 	// Listener
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.GRPCPort))
+	listener, err := net.Listen("tcp", cfg.GRPC.Address())
 	if err != nil {
 		_ = db.Close()
 		return nil, apperror.Wrap("app", "New", "failed to create tcp listener", err)
@@ -67,7 +66,7 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 func (a *App) Run() error {
 	a.logger.Info(
 		"gRPC server started",
-		slog.String("address", a.cfg.GRPCPort),
+		slog.Int("address", a.cfg.GRPC.Port),
 	)
 
 	return a.grpcServer.Serve(a.listener)
