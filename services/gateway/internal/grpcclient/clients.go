@@ -3,6 +3,7 @@ package grpcclient
 import (
 	"errors"
 
+	"github.com/diyorbeknematov/minitwitter/gen/go/auth"
 	"github.com/diyorbeknematov/minitwitter/gen/go/media"
 	"github.com/diyorbeknematov/minitwitter/gen/go/notification"
 	"github.com/diyorbeknematov/minitwitter/gen/go/tweet"
@@ -13,6 +14,7 @@ import (
 )
 
 type Client struct {
+	Auth         auth.AuthServiceClient
 	User         user.UserServiceClient
 	Tweet        tweet.TweetServiceClient
 	Media        media.MediaServiceClient
@@ -47,6 +49,7 @@ func New(cfg *config.Config) (*Client, error) {
 
 	return &Client{
 		userConn: userConn,
+		Auth:     auth.NewAuthServiceClient(userConn),
 		User:     user.NewUserServiceClient(userConn),
 
 		tweetConn: tweetConn,

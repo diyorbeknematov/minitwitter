@@ -1,9 +1,13 @@
 package dto
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type User struct {
-	ID             string    `json:"id"`
+	ID             uuid.UUID `json:"id"`
 	Username       string    `json:"username"`
 	Email          string    `json:"email"`
 	Name           string    `json:"name"`
@@ -15,10 +19,8 @@ type User struct {
 }
 
 type UsersResp struct {
-	Users []User `json:"users"`
-	Page  int32  `json:"page"`
-	Limit int32  `json:"limit"`
-	Total uint64 `json:"total"`
+	Users      []User     `json:"users"`
+	Pagination Pagination `json:"pagination"`
 }
 
 type UpdateProfileReq struct {
