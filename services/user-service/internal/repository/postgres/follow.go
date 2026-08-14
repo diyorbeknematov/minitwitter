@@ -20,42 +20,145 @@ func NewFollowRepo(db *sqlx.DB) *followRepo {
 }
 
 func (r *followRepo) Create(ctx context.Context, follow *models.Follow) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "CreateFollow", "failed to begin transaction", err,
+		)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
 	query := `
 		INSERT INTO follows (
 			follower_id,
 			following_id
-		) 
-		VALUES ($1, $2)
-		RETURNING created_at;
+		)
+		VALUES ($1, $2);
 	`
-	err := r.db.QueryRowContext(
+
+	_, err = tx.ExecContext(
 		ctx,
 		query,
 		follow.FollowerID,
 		follow.FollowingID,
-		follow.CreatedAt,
-	).Scan(&follow.CreatedAt)
-
+	)
 	if err != nil {
-		return apperror.Wrap("repository", "UserFollowing", "failed to following", err)
+		return apperror.Wrap(
+			"repository", "CreateFollow", "failed to create follow", err,
+		)
+	}
+
+	// following qilinayotgan userning followers_count++
+	query = `
+		UPDATE users
+		SET followers_count = followers_count + 1
+		WHERE id = $1;
+	`
+
+	_, err = tx.ExecContext(ctx, query, follow.FollowingID)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "CreateFollow", "failed to update followers count", err,
+		)
+	}
+
+	// follower userning following_count++
+	query = `
+		UPDATE users
+		SET following_count = following_count + 1
+		WHERE id = $1;
+	`
+
+	_, err = tx.ExecContext(ctx, query, follow.FollowerID)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "CreateFollow", "failed to update following count", err,
+		)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return apperror.Wrap(
+			"repository", "CreateFollow", "failed to commit transaction", err,
+		)
 	}
 
 	return nil
 }
 
 func (r *followRepo) Delete(ctx context.Context, follow *models.Follow) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "DeleteFollow", "failed to begin transaction", err,
+		)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
 	query := `
-		DELETE FROM fallows
-		WHERE follower_id = $1 AND following_id = $2;
+		DELETE FROM follows
+		WHERE follower_id = $1
+		  AND following_id = $2;
 	`
 
-	_, err := r.db.Exec(query,
+	res, err := tx.ExecContext(
+		ctx,
+		query,
 		follow.FollowerID,
 		follow.FollowingID,
 	)
-
 	if err != nil {
-		return apperror.Wrap("repository", "UserUnfollowing", "failed to unfollowing", err)
+		return apperror.Wrap(
+			"repository", "DeleteFollow", "failed to delete follow", err,
+		)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "DeleteFollow", "failed to get rows affected", err,
+		)
+	}
+
+	if rows == 0 {
+		return apperror.Wrap(
+			"repository", "DeleteFollow", "follow relation not found", nil,
+		)
+	}
+
+	query = `
+		UPDATE users
+		SET followers_count = followers_count - 1
+		WHERE id = $1;
+	`
+
+	_, err = tx.ExecContext(ctx, query, follow.FollowingID)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "DeleteFollow", "failed to update followers count", err,
+		)
+	}
+
+	query = `
+		UPDATE users
+		SET following_count = following_count - 1
+		WHERE id = $1;
+	`
+
+	_, err = tx.ExecContext(ctx, query, follow.FollowerID)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "DeleteFollow", "failed to update following count", err,
+		)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return apperror.Wrap(
+			"repository", "DeleteFollow", "failed to commit transaction", err,
+		)
 	}
 
 	return nil

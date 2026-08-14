@@ -12,13 +12,18 @@ func ToUser(pb *user.User) (dto.User, error) {
 		return dto.User{}, err
 	}
 
+	avatarID, err := uuid.Parse(pb.AvatarMediaId)
+	if err != nil {
+		return dto.User{}, err
+	}
+
 	return dto.User{
 		ID:             userId,
 		Username:       pb.Username,
 		Email:          pb.Email,
 		Name:           pb.Name,
 		Bio:            pb.Bio,
-		AvatarURL:      pb.AvatarUrl,
+		AvatarMediaID:  avatarID,
 		FollowersCount: pb.FollowersCount,
 		FollowingCount: pb.FollowingCount,
 		CreatedAt:      pb.CreatedAt.AsTime(),
@@ -50,15 +55,33 @@ func ToUsersResp(
 	}, nil
 }
 
+func ToUsersMap(
+	pb *user.UsersResponse,
+) (map[string]dto.User, error) {
+
+	users := make(map[string]dto.User, len(pb.Users))
+
+	for _, u := range pb.Users {
+		dtoUser, err := ToUser(u)
+		if err != nil {
+			return nil, err
+		}
+
+		users[dtoUser.ID.String()] = dtoUser
+	}
+
+	return users, nil
+}
+
 func ToUpdateProfileRequest(
 	userID string,
 	req dto.UpdateProfileReq,
 ) *user.UpdateProfileRequest {
 
 	return &user.UpdateProfileRequest{
-		UserId:    userID,
-		Name:      req.Name,
-		Bio:       req.Bio,
-		AvatarUrl: req.AvatarURL,
+		UserId:        userID,
+		Name:          req.Name,
+		Bio:           req.Bio,
+		AvatarMediaId: req.AvatarMediaID.String(),
 	}
 }

@@ -29,7 +29,7 @@ func ToUploadMediaReq(
 	file []byte,
 	filename string,
 	req dto.UploadMediaReq,
-) (*media.UploadMediaRequest, error) {
+) *media.UploadMediaRequest {
 
 	var category media.MediaCategory
 
@@ -49,10 +49,40 @@ func ToUploadMediaReq(
 		File:     file,
 		Filename: filename,
 		Category: category,
-	}, nil
+	}
 }
 
-func ToGetMediasResponse(
+func ToMediaMap(
+	pb *media.GetMediasResponse,
+) (map[string]dto.Media, error) {
+
+	medias := make(map[string]dto.Media, len(pb.Medias))
+
+	for _, m := range pb.Medias {
+		dtoMedia, err := ToMedia(m)
+		if err != nil {
+			return nil, err
+		}
+
+		medias[dtoMedia.ID.String()] = dtoMedia
+	}
+
+	return medias, nil
+}
+
+func ToGetMediasReq(ids []uuid.UUID) *media.GetMediasRequest {
+	mediaIds := make([]string, len(ids))
+
+	for i, id := range ids {
+		mediaIds[i] = id.String()
+	}
+
+	return &media.GetMediasRequest{
+		MediaIds: mediaIds,
+	}
+}
+
+func ToGetMediasResp(
 	pb *media.GetMediasResponse,
 ) (dto.GetMediasResp, error) {
 

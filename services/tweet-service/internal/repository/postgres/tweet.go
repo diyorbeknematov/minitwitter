@@ -5,6 +5,7 @@ import (
 
 	"github.com/diyorbeknematov/minitwitter/services/tweet-service/internal/models"
 	"github.com/diyorbeknematov/minitwitter/services/tweet-service/pkg/apperror"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -20,29 +21,57 @@ func NewTweetRepo(db *sqlx.DB) *tweetRepo {
 }
 
 func (r *tweetRepo) Create(ctx context.Context, tweet *models.Tweet) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return apperror.Wrap("repository", "CreateTweet", "failed to begin transaction", err)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
 	query := `
 		INSERT INTO tweets (
 			author_id,
 			content,
-			reply_to_tweet_id,
-			updated_at
+			reply_to_tweet_id
 		) 
-		VALUES ($1, $2, $3, $4)
+		VALUES ($1, $2, $3)
 		RETURNING id, created_at, updated_at;
 	`
-	err := r.db.QueryRowContext(
+	err = tx.QueryRowContext(
 		ctx,
 		query,
-		tweet.ID,
+		tweet.AuthorID,
 		tweet.Content,
 		tweet.ReplyToTweetID,
 	).Scan(
 		&tweet.ID,
-		&tweet.Content,
-		&tweet.ReplyToTweetID,
+		&tweet.CreatedAt,
+		&tweet.UpdatedAt,
 	)
 	if err != nil {
 		return apperror.Wrap("repository", "CreateTweet", "failed to create tweet", err)
+	}
+
+	query = `
+		INSERT INTO tweet_media (
+			tweet_id,
+			media_id,
+			position
+		)
+		VALUES($1, $2, $3);
+	`
+	for i, mediaID := range tweet.MediaIDs {
+		_, err := tx.ExecContext(ctx, query, tweet.ID, mediaID, i)
+		if err != nil {
+			return apperror.Wrap("repository", "CreateTweet", "failed to create tweet_media", err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return apperror.Wrap(
+			"repository", "CreateTweet", "failed to commit transaction", err,
+		)
 	}
 
 	return nil
@@ -50,21 +79,35 @@ func (r *tweetRepo) Create(ctx context.Context, tweet *models.Tweet) error {
 
 func (r *tweetRepo) GetByID(ctx context.Context, tweetID string) (*models.Tweet, error) {
 	query := `
-		SELECT
-			id,
-			author_id,
-			reply_to_tweet_id,
-			created_at,
-			updated_at
-		FROM tweets
-		WHERE id = $1;
+		SELECT 
+			t.id, 
+			t.author_id, 
+			t.content, 
+			t.reply_to_tweet_id,
+			t.likes_count,
+			t.retweets_count,
+			COALESCE(
+				ARRAY_AGG(tm.media_id ORDER BY tm.position) FILTER (WHERE tm.media_id IS NOT NULL), 
+				'{}'
+				) AS media_ids,
+			t.created_at,
+			t.updated_at
+		FROM tweets t
+		LEFT JOIN tweet_media tm ON tm.tweet_id = t.id
+		WHERE t.id = $1 AND t.deleted_at IS NULL
+		GROUP BY t.id
+		ORDER BY t.created_at DESC;
 	`
 
 	var tweet models.Tweet
 	err := r.db.QueryRow(query, tweetID).Scan(
 		&tweet.ID,
 		&tweet.AuthorID,
+		&tweet.Content,
 		&tweet.ReplyToTweetID,
+		&tweet.LikesCount,
+		&tweet.RetweetsCount,
+		pq.Array(&tweet.MediaIDs),
 		&tweet.CreatedAt,
 		&tweet.UpdatedAt,
 	)
@@ -74,27 +117,37 @@ func (r *tweetRepo) GetByID(ctx context.Context, tweetID string) (*models.Tweet,
 
 	return &tweet, nil
 }
-func (r *tweetRepo) GetByUser(ctx context.Context, userID string, limit, offset int) ([]models.Tweet, int, error) {
+
+func (r *tweetRepo) GetByUser(ctx context.Context, userID string, limit, offset int32) ([]models.Tweet, int, error) {
 	baseQuery := `
 		SELECT 
 			id,
 			author_id,
 			content,
 			reply_to_tweet_id,
+			likes_count,
+			retweets_count,
+			COALESCE(
+				ARRAY_AGG(tm.media_id ORDER BY tm.position) FILTER (WHERE tm.media_id IS NOT NULL), 
+				'{}'
+				) AS media_ids,
 			created_at,
 			updated_at
-		FROM tweets
-		WHERE author_id = $1
+		FROM tweets t
+		LEFT JOIN tweet_media tm ON tm.tweet_id = t.id
+		WHERE author_id = $1 AND t.deleted_at IS NULL
+		GROUP BY t.id 
+		ORDER BY t.created_at DESC
 		LIMIT $2 OFFSET $3;
 	`
 	countQuery := `
 		SELECT 
 			COUNT(*)
 		FROM tweets
-		WHERE author_id = $1;
+		WHERE author_id = $1 AND t.deleted_at IS NULL;
 	`
 
-	rows, err := r.db.Query(baseQuery, userID, limit, offset)
+	rows, err := r.db.QueryContext(ctx, baseQuery, userID, limit, offset)
 	if err != nil {
 		return nil, 0, apperror.Wrap("repository", "GetTweetByUser", "failed to get tweet by user id", err)
 	}
@@ -108,6 +161,9 @@ func (r *tweetRepo) GetByUser(ctx context.Context, userID string, limit, offset 
 			&tweet.AuthorID,
 			&tweet.Content,
 			&tweet.ReplyToTweetID,
+			&tweet.LikesCount,
+			&tweet.RetweetsCount,
+			pq.Array(&tweet.MediaIDs),
 			&tweet.CreatedAt,
 			&tweet.UpdatedAt,
 		); err != nil {
@@ -122,7 +178,7 @@ func (r *tweetRepo) GetByUser(ctx context.Context, userID string, limit, offset 
 	}
 
 	var total int
-	err = r.db.QueryRow(countQuery, userID).Scan(&total)
+	err = r.db.QueryRowContext(ctx, countQuery, userID).Scan(&total)
 	if err != nil {
 		return nil, 0, apperror.Wrap("repository", "GetTweetsByUser", "failed to get total number", err)
 	}
@@ -131,35 +187,69 @@ func (r *tweetRepo) GetByUser(ctx context.Context, userID string, limit, offset 
 }
 
 func (r *tweetRepo) CreateRetweet(ctx context.Context, retweet models.Retweet) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "CreateRetweet", "failed to begin transaction", err,
+		)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
 	query := `
 		INSERT INTO retweets (
 			tweet_id,
-			user_id,
-			created_at
+			user_id
 		)
-		VALUES($1, $2, $3)
+		VALUES($1, $2)
 	`
 
-	_, err := r.db.Exec(query,
+	_, err = tx.ExecContext(ctx,
+		query,
 		retweet.TweetID,
 		retweet.UserID,
-		retweet.CreatedAt,
 	)
 	if err != nil {
-		return apperror.Wrap("repository", "Retweet", "failed to tweet to retweet", err)
+		return apperror.Wrap("repository", "CreateRetweet", "failed to tweet to retweet", err)
+	}
+
+	query = `
+		UPDATE tweets
+		SET 
+			retweets_count = retweets_count + 1
+		WHERE id = $1
+	`
+	_, err = tx.ExecContext(ctx, query, retweet.TweetID)
+	if err != nil {
+		return apperror.Wrap("repository", "CreataeRetweet", "failed to update retweets count", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return apperror.Wrap(
+			"repository", "CreateRetweet", "failed to commit transaction", err,
+		)
 	}
 
 	return nil
 }
 
 func (r *tweetRepo) DeleteRetweet(ctx context.Context, tweetID, userID string) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return apperror.Wrap("repository", "DeleteRetweet", "failed to begin transaction", err)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
 	query := `
 		DELETE FROM retweets
 		WHERE tweet_id = $1 
 			AND user_id = $2;
 	`
 
-	res, err := r.db.Exec(query, tweetID, userID)
+	res, err := tx.ExecContext(ctx, query, tweetID, userID)
 	if err != nil {
 		return apperror.Wrap("repository", "DeleteRetweet", "failed to delete retweet", err)
 	}
@@ -173,10 +263,32 @@ func (r *tweetRepo) DeleteRetweet(ctx context.Context, tweetID, userID string) e
 		return apperror.Wrap("repository", "DeleteRetweet", "no rows affected to delete retweet", err)
 	}
 
+	query = `
+		UPDATE tweets
+		SET 
+			retweets_count = retweets_count - 1
+		WHERE id = $1
+	`
+
+	_, err = tx.ExecContext(ctx, tweetID)
+	if err != nil {
+		apperror.Wrap("repository", "DeleteRetweet", "failed to update retweets count", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return apperror.Wrap("repository", "DeleteRetweet", "failed to commit transaction", err)
+	}
+
 	return nil
 }
 
 func (r *tweetRepo) Update(ctx context.Context, tweet models.Tweet) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return apperror.Wrap("repository", "UpdateTweet", "failed to begin transaction", err)
+	}
+	defer tx.Rollback()
+
 	query := `
 		UPDATE tweets 
 		SET
@@ -184,7 +296,7 @@ func (r *tweetRepo) Update(ctx context.Context, tweet models.Tweet) error {
 			updated_at = $3
 		WHERE tweet_id = $1
 	`
-	res, err := r.db.Exec(query,
+	res, err := tx.Exec(query,
 		tweet.ID,
 		tweet.Content,
 		tweet.UpdatedAt,
@@ -230,33 +342,41 @@ func (r *tweetRepo) Delete(ctx context.Context, tweetID string) error {
 	return nil
 }
 
-func (r *tweetRepo) GetTimeline(ctx context.Context, req models.GetTimelineReq) ([]models.Tweet, int, error) {
+func (r *tweetRepo) GetTimeline(ctx context.Context, userIDs []uuid.UUID, limit, offset int32) ([]models.Tweet, int, error) {
 	baseQuery := `
-		SELECT
-			id,
-			author_id,
-			content,
-			reply_to_tweet_id,
-			created_at,
-			updated_at
-		FROM tweets
-		WHERE author_id = ANY($1)
-		ORDER BY created_at DESC
+		SELECT 
+			t.id, 
+			t.author_id, 
+			t.content, 
+			t.reply_to_tweet_id,
+			t.likes_count,
+			t.retweets_count,
+			COALESCE(
+				ARRAY_AGG(tm.media_id ORDER BY tm.position) FILTER (WHERE tm.media_id IS NOT NULL), 
+				'{}'
+				) AS media_ids,
+			t.created_at,
+			t.updated_at
+		FROM tweets t
+		LEFT JOIN tweet_media tm ON tm.tweet_id = t.id
+		WHERE t.author_id = ANY($1) AND t.deleted_at IS NULL
+		GROUP BY t.id
+		ORDER BY t.created_at DESC
 		LIMIT $2 OFFSET $3;
 	`
 	countQuery := `
 		SELECT
 			COUNT(*)
 		FROM tweets
-		WHERE author_id = ANY($1);
+		WHERE deleted_at IS NULL AND author_id = ANY($1);
 	`
 
 	rows, err := r.db.QueryContext(
 		ctx,
 		baseQuery,
-		pq.Array(req.UserIDs),
-		req.Limit,
-		req.Offset,
+		pq.Array(userIDs),
+		limit,
+		offset,
 	)
 	if err != nil {
 		return nil, 0, apperror.Wrap("repository", "GetTimeline", "failed to execute the query context", err)
@@ -271,6 +391,9 @@ func (r *tweetRepo) GetTimeline(ctx context.Context, req models.GetTimelineReq) 
 			&tweet.AuthorID,
 			&tweet.Content,
 			&tweet.ReplyToTweetID,
+			&tweet.LikesCount,
+			&tweet.RetweetsCount,
+			pq.Array(&tweet.MediaIDs),
 			&tweet.CreatedAt,
 			&tweet.UpdatedAt,
 		); err != nil {
@@ -285,7 +408,7 @@ func (r *tweetRepo) GetTimeline(ctx context.Context, req models.GetTimelineReq) 
 	}
 
 	var total int
-	err = r.db.QueryRowContext(ctx, countQuery, pq.Array(req.UserIDs)).Scan(&total)
+	err = r.db.QueryRowContext(ctx, countQuery, pq.Array(userIDs)).Scan(&total)
 	if err != nil {
 		return nil, 0, apperror.Wrap("repository", "GetTimeline", "failed to get total count", err)
 	}

@@ -19,46 +19,124 @@ func NewLikeRepo(db *sqlx.DB) *likeRepo {
 }
 
 func (r *likeRepo) Create(ctx context.Context, like *models.Like) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "CreateLike", "failed to begin transaction", err,
+		)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
 	query := `
 		INSERT INTO likes (
 			tweet_id,
 			user_id,
-			created_at = $3
-		) 
-		VALUES($1, $2)
+			created_at
+		)
+		VALUES ($1, $2, $3);
 	`
 
-	_, err := r.db.ExecContext(ctx, query, like.TweetID, like.UserID, like.CreatedAt)
+	_, err = tx.ExecContext(
+		ctx,
+		query,
+		like.TweetID,
+		like.UserID,
+		like.CreatedAt,
+	)
 	if err != nil {
-		return apperror.Wrap("repository", "CreateLike", "failed to create like", err)
+		return apperror.Wrap(
+			"repository", "CreateLike", "failed to create like", err,
+		)
+	}
+
+	query = `
+		UPDATE tweets
+		SET likes_count = likes_count + 1
+		WHERE id = $1;
+	`
+
+	_, err = tx.ExecContext(ctx, query, like.TweetID)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "CreateLike", "failed to update likes count", err,
+		)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return apperror.Wrap(
+			"repository",
+			"CreateLike",
+			"failed to commit transaction",
+			err,
+		)
 	}
 
 	return nil
 }
 
 func (r *likeRepo) Delete(ctx context.Context, tweetID, userID string) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "DeleteLike", "failed to begin transaction", err,
+		)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
 	query := `
 		DELETE FROM likes
 		WHERE tweet_id = $1
-			AND user_id = $2;
+		  AND user_id = $2;
 	`
 
-	res, err := r.db.ExecContext(ctx,
+	res, err := tx.ExecContext(
+		ctx,
 		query,
 		tweetID,
 		userID,
 	)
 	if err != nil {
-		return apperror.Wrap("repository", "Unlike", "failed to unlike", err)
+		return apperror.Wrap(
+			"repository", "DeleteLike", "failed to delete like", err,
+		)
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
-		return apperror.Wrap("repository", "Unlike", "failed to get rows effected", err)
+		return apperror.Wrap(
+			"repository", "DeleteLike", "failed to get rows affected", err,
+		)
 	}
 
 	if rows == 0 {
-		return apperror.Wrap("repository", "Unlike", "no rows affected to unlike", err)
+		return apperror.Wrap(
+			"repository", "DeleteLike", "like not found", nil,
+		)
+	}
+
+	query = `
+		UPDATE tweets
+		SET likes_count = likes_count - 1
+		WHERE id = $1;
+	`
+
+	_, err = tx.ExecContext(ctx, query, tweetID)
+	if err != nil {
+		return apperror.Wrap(
+			"repository", "DeleteLike", "failed to update likes count",
+			err,
+		)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return apperror.Wrap(
+			"repository", "DeleteLike", "failed to commit transaction",
+			err,
+		)
 	}
 
 	return nil

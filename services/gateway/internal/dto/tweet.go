@@ -7,21 +7,28 @@ import (
 )
 
 type Tweet struct {
-	ID             uuid.UUID   `json:"id"`
-	AuthorID       uuid.UUID   `json:"author_id"`
-	Content        string      `json:"content"`
-	MediaIDs       []uuid.UUID `json:"media_ids"`
-	ReplyToTweetID *uuid.UUID   `json:"reply_to_tweet_id,omitempty"`
-	LikesCount     int64       `json:"likes_count"`
-	RetweetsCount  int64       `json:"retweets_count"`
-	CreatedAt      time.Time   `json:"created_at"`
-	UpdatedAt      time.Time   `json:"updated_at"`
+	ID      uuid.UUID `json:"id"`
+	Content string    `json:"content"`
+
+	AuthorID uuid.UUID `json:"-"` // ichkarida ishlatamiz
+	Author   User      `json:"author"`
+
+	MediaIDs  []uuid.UUID `json:"-"` // ichkarida ishlatamiz
+	MediaURLs []string    `json:"media_urls"`
+
+	ReplyToTweetID *uuid.UUID `json:"reply_to_tweet_id,omitempty"`
+
+	LikesCount    int64
+	RetweetsCount int64
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type CreateTweetReq struct {
 	Content        string      `json:"content"`
 	MediaIDs       []uuid.UUID `json:"media_ids,"`
-	ReplyToTweetID *uuid.UUID   `json:"reply_to_tweet_id,omitempty"`
+	ReplyToTweetID *uuid.UUID  `json:"reply_to_tweet_id,omitempty"`
 }
 
 type UpdateTweetReq struct {

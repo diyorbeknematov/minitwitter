@@ -248,6 +248,7 @@ type UpdateTweetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TweetId       string                 `protobuf:"bytes,1,opt,name=tweet_id,json=tweetId,proto3" json:"tweet_id,omitempty"`
 	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	MediaIds      []string               `protobuf:"bytes,3,rep,name=media_ids,json=mediaIds,proto3" json:"media_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -294,6 +295,13 @@ func (x *UpdateTweetRequest) GetContent() string {
 		return x.Content
 	}
 	return ""
+}
+
+func (x *UpdateTweetRequest) GetMediaIds() []string {
+	if x != nil {
+		return x.MediaIds
+	}
+	return nil
 }
 
 type DeleteTweetRequest struct {
@@ -824,10 +832,11 @@ const file_tweet_tweet_proto_rawDesc = "" +
 	"\tmedia_ids\x18\x03 \x03(\tR\bmediaIds\x12)\n" +
 	"\x11reply_to_tweet_id\x18\x04 \x01(\tR\x0ereplyToTweetId\"9\n" +
 	"\x13CreateTweetResponse\x12\"\n" +
-	"\x05tweet\x18\x01 \x01(\v2\f.tweet.TweetR\x05tweet\"I\n" +
+	"\x05tweet\x18\x01 \x01(\v2\f.tweet.TweetR\x05tweet\"f\n" +
 	"\x12UpdateTweetRequest\x12\x19\n" +
 	"\btweet_id\x18\x01 \x01(\tR\atweetId\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\"/\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1b\n" +
+	"\tmedia_ids\x18\x03 \x03(\tR\bmediaIds\"/\n" +
 	"\x12DeleteTweetRequest\x12\x19\n" +
 	"\btweet_id\x18\x01 \x01(\tR\atweetId\",\n" +
 	"\x0fGetTweetRequest\x12\x19\n" +

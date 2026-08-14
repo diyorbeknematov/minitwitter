@@ -10,6 +10,7 @@ import (
 	"github.com/diyorbek/minitwitter/services/user-service/pkg/apperror"
 	"github.com/diyorbeknematov/minitwitter/gen/go/user"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -39,13 +40,25 @@ func (s *userService) GetUserById(ctx context.Context, req *user.GetUserByIdRequ
 	}
 
 	return &user.User{
-		Id:        u.ID.String(),
-		Username:  u.Username,
-		Email:     u.Email,
-		Name:      u.Name,
-		Bio:       u.Bio,
-		AvatarUrl: u.AvatarMediaID.String(),
-		CreatedAt: timestamppb.New(u.CreatedAt),
+		Id:            u.ID.String(),
+		Username:      u.Username,
+		Email:         u.Email,
+		Name:          u.Name,
+		Bio:           u.Bio,
+		AvatarMediaId: u.AvatarMediaID.String(),
+		CreatedAt:     timestamppb.New(u.CreatedAt),
+	}, nil
+}
+
+func (s *userService) GetUsersByIds(ctx context.Context, req *user.GetUsersByIdsRequest) (*user.UsersResponse, error) {
+	users, err := s.repo.User.GetByIDs(ctx, req.UserIds)
+	if err != nil {
+		return nil, apperror.Wrap("serivice", "GetUsersByIds", "failed to get users by ids", err)
+	}
+
+	return &user.UsersResponse{
+		Users: s.toProtoUsers(users),
+		Total: uint64(len(users)),
 	}, nil
 }
 
@@ -71,7 +84,7 @@ func (s *userService) GetProfile(ctx context.Context, req *user.GetProfileReques
 		Email:          usr.Email,
 		Name:           usr.Name,
 		Bio:            usr.Bio,
-		AvatarUrl:      usr.AvatarMediaID.String(),
+		AvatarMediaId:  usr.AvatarMediaID.String(),
 		FollowersCount: uint64(followersCount),
 		FollowingCount: uint64(followingCount),
 	}, nil
@@ -83,7 +96,7 @@ func (s *userService) UpdateProfile(ctx context.Context, req *user.UpdateProfile
 		return nil, apperror.Wrap("service", "UpdateProfile", "failed to parse user id", err)
 	}
 
-	avatarURL, err := uuid.Parse(req.GetAvatarUrl())
+	avatarID, err := uuid.Parse(req.GetAvatarMediaId())
 	if err != nil {
 		return nil, apperror.Wrap("service", "UpdateProfile", "failed to parse avatar media id", err)
 	}
@@ -99,7 +112,7 @@ func (s *userService) UpdateProfile(ctx context.Context, req *user.UpdateProfile
 		Email:         usr.Email,
 		Name:          req.Name,
 		Bio:           req.Bio,
-		AvatarMediaID: &avatarURL,
+		AvatarMediaID: &avatarID,
 		UpdatedAt:     time.Now(),
 	})
 
@@ -108,16 +121,16 @@ func (s *userService) UpdateProfile(ctx context.Context, req *user.UpdateProfile
 	}
 
 	return &user.User{
-		Id:        usr.ID.String(),
-		Username:  usr.Username,
-		Email:     usr.Email,
-		Name:      usr.Name,
-		Bio:       usr.Bio,
-		AvatarUrl: usr.AvatarMediaID.String(),
+		Id:            usr.ID.String(),
+		Username:      usr.Username,
+		Email:         usr.Email,
+		Name:          usr.Name,
+		Bio:           usr.Bio,
+		AvatarMediaId: usr.AvatarMediaID.String(),
 	}, nil
 }
 
-func (s *userService) Follow(ctx context.Context, req *user.FollowRequest) (*user.FollowResponse, error) {
+func (s *userService) Follow(ctx context.Context, req *user.FollowRequest) (*emptypb.Empty, error) {
 	followerID, err := uuid.Parse(req.FollowerId)
 	if err != nil {
 		return nil, apperror.Wrap("service", "Follow", "failed to parse follower id", err)
@@ -137,12 +150,10 @@ func (s *userService) Follow(ctx context.Context, req *user.FollowRequest) (*use
 		return nil, apperror.Wrap("service", "Follow", "failed to follow", err)
 	}
 
-	return &user.FollowResponse{
-		Success: true,
-	}, nil
+	return &emptypb.Empty{}, nil
 }
 
-func (s *userService) Unfollow(ctx context.Context, req *user.UnfollowRequest) (*user.UnfollowResponse, error) {
+func (s *userService) Unfollow(ctx context.Context, req *user.UnfollowRequest) (*emptypb.Empty, error) {
 	followerID, err := uuid.Parse(req.FollowerId)
 	if err != nil {
 		return nil, apperror.Wrap("service", "UnFollow", "failed to parse follower id", err)
@@ -162,9 +173,7 @@ func (s *userService) Unfollow(ctx context.Context, req *user.UnfollowRequest) (
 		return nil, apperror.Wrap("service", "UnFollow", "failed to follow", err)
 	}
 
-	return &user.UnfollowResponse{
-		Success: true,
-	}, nil
+	return &emptypb.Empty{}, nil
 }
 
 func (s *userService) GetFollowers(ctx context.Context, req *user.GetFollowersRequest) (*user.UsersResponse, error) {
@@ -236,12 +245,12 @@ func (s *userService) GetFollowingIds(ctx context.Context, req *user.GetFollowin
 
 func (s *userService) toProtoUser(u models.User) *user.User {
 	return &user.User{
-		Id:        u.ID.String(),
-		Username:  u.Username,
-		Email:     u.Email,
-		Name:      u.Name,
-		Bio:       u.Bio,
-		AvatarUrl: u.AvatarMediaID.String(),
+		Id:            u.ID.String(),
+		Username:      u.Username,
+		Email:         u.Email,
+		Name:          u.Name,
+		Bio:           u.Bio,
+		AvatarMediaId: u.AvatarMediaID.String(),
 	}
 }
 

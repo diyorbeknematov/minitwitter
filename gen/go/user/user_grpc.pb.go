@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -27,6 +28,7 @@ const (
 	UserService_GetFollowing_FullMethodName    = "/user.UserService/GetFollowing"
 	UserService_SearchUsers_FullMethodName     = "/user.UserService/SearchUsers"
 	UserService_GetUserById_FullMethodName     = "/user.UserService/GetUserById"
+	UserService_GetUsersByIds_FullMethodName   = "/user.UserService/GetUsersByIds"
 	UserService_GetFollowingIds_FullMethodName = "/user.UserService/GetFollowingIds"
 )
 
@@ -36,13 +38,14 @@ const (
 type UserServiceClient interface {
 	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*User, error)
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*User, error)
-	Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error)
-	Unfollow(ctx context.Context, in *UnfollowRequest, opts ...grpc.CallOption) (*UnfollowResponse, error)
+	Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Unfollow(ctx context.Context, in *UnfollowRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetFollowers(ctx context.Context, in *GetFollowersRequest, opts ...grpc.CallOption) (*UsersResponse, error)
 	GetFollowing(ctx context.Context, in *GetFollowingRequest, opts ...grpc.CallOption) (*UsersResponse, error)
 	SearchUsers(ctx context.Context, in *SearchUsersRequest, opts ...grpc.CallOption) (*UsersResponse, error)
 	// Internal APIs (other services use these)
 	GetUserById(ctx context.Context, in *GetUserByIdRequest, opts ...grpc.CallOption) (*User, error)
+	GetUsersByIds(ctx context.Context, in *GetUsersByIdsRequest, opts ...grpc.CallOption) (*UsersResponse, error)
 	GetFollowingIds(ctx context.Context, in *GetFollowingIdsRequest, opts ...grpc.CallOption) (*FollowingIdsResponse, error)
 }
 
@@ -74,9 +77,9 @@ func (c *userServiceClient) UpdateProfile(ctx context.Context, in *UpdateProfile
 	return out, nil
 }
 
-func (c *userServiceClient) Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error) {
+func (c *userServiceClient) Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(FollowResponse)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, UserService_Follow_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -84,9 +87,9 @@ func (c *userServiceClient) Follow(ctx context.Context, in *FollowRequest, opts 
 	return out, nil
 }
 
-func (c *userServiceClient) Unfollow(ctx context.Context, in *UnfollowRequest, opts ...grpc.CallOption) (*UnfollowResponse, error) {
+func (c *userServiceClient) Unfollow(ctx context.Context, in *UnfollowRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UnfollowResponse)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, UserService_Unfollow_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -134,6 +137,16 @@ func (c *userServiceClient) GetUserById(ctx context.Context, in *GetUserByIdRequ
 	return out, nil
 }
 
+func (c *userServiceClient) GetUsersByIds(ctx context.Context, in *GetUsersByIdsRequest, opts ...grpc.CallOption) (*UsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UsersResponse)
+	err := c.cc.Invoke(ctx, UserService_GetUsersByIds_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) GetFollowingIds(ctx context.Context, in *GetFollowingIdsRequest, opts ...grpc.CallOption) (*FollowingIdsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(FollowingIdsResponse)
@@ -150,13 +163,14 @@ func (c *userServiceClient) GetFollowingIds(ctx context.Context, in *GetFollowin
 type UserServiceServer interface {
 	GetProfile(context.Context, *GetProfileRequest) (*User, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*User, error)
-	Follow(context.Context, *FollowRequest) (*FollowResponse, error)
-	Unfollow(context.Context, *UnfollowRequest) (*UnfollowResponse, error)
+	Follow(context.Context, *FollowRequest) (*emptypb.Empty, error)
+	Unfollow(context.Context, *UnfollowRequest) (*emptypb.Empty, error)
 	GetFollowers(context.Context, *GetFollowersRequest) (*UsersResponse, error)
 	GetFollowing(context.Context, *GetFollowingRequest) (*UsersResponse, error)
 	SearchUsers(context.Context, *SearchUsersRequest) (*UsersResponse, error)
 	// Internal APIs (other services use these)
 	GetUserById(context.Context, *GetUserByIdRequest) (*User, error)
+	GetUsersByIds(context.Context, *GetUsersByIdsRequest) (*UsersResponse, error)
 	GetFollowingIds(context.Context, *GetFollowingIdsRequest) (*FollowingIdsResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -174,10 +188,10 @@ func (UnimplementedUserServiceServer) GetProfile(context.Context, *GetProfileReq
 func (UnimplementedUserServiceServer) UpdateProfile(context.Context, *UpdateProfileRequest) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateProfile not implemented")
 }
-func (UnimplementedUserServiceServer) Follow(context.Context, *FollowRequest) (*FollowResponse, error) {
+func (UnimplementedUserServiceServer) Follow(context.Context, *FollowRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method Follow not implemented")
 }
-func (UnimplementedUserServiceServer) Unfollow(context.Context, *UnfollowRequest) (*UnfollowResponse, error) {
+func (UnimplementedUserServiceServer) Unfollow(context.Context, *UnfollowRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method Unfollow not implemented")
 }
 func (UnimplementedUserServiceServer) GetFollowers(context.Context, *GetFollowersRequest) (*UsersResponse, error) {
@@ -191,6 +205,9 @@ func (UnimplementedUserServiceServer) SearchUsers(context.Context, *SearchUsersR
 }
 func (UnimplementedUserServiceServer) GetUserById(context.Context, *GetUserByIdRequest) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserById not implemented")
+}
+func (UnimplementedUserServiceServer) GetUsersByIds(context.Context, *GetUsersByIdsRequest) (*UsersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUsersByIds not implemented")
 }
 func (UnimplementedUserServiceServer) GetFollowingIds(context.Context, *GetFollowingIdsRequest) (*FollowingIdsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFollowingIds not implemented")
@@ -360,6 +377,24 @@ func _UserService_GetUserById_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUsersByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUsersByIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUsersByIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUsersByIds_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUsersByIds(ctx, req.(*GetUsersByIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_GetFollowingIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetFollowingIdsRequest)
 	if err := dec(in); err != nil {
@@ -416,6 +451,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserById",
 			Handler:    _UserService_GetUserById_Handler,
+		},
+		{
+			MethodName: "GetUsersByIds",
+			Handler:    _UserService_GetUsersByIds_Handler,
 		},
 		{
 			MethodName: "GetFollowingIds",

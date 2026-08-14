@@ -79,7 +79,7 @@ func ToGetNotificationsResp(
 	}, nil
 }
 
-func ToGetNotificationsRequest(
+func ToGetNotificationsReq(
 	userID uuid.UUID,
 	req dto.GetNotificationsReq,
 ) *notification.GetNotificationsRequest {
@@ -93,7 +93,7 @@ func ToGetNotificationsRequest(
 	}
 }
 
-func ToGetUnreadCountResponse(
+func ToGetUnreadCountResp(
 	pb *notification.GetUnreadCountResponse,
 ) dto.GetUnreadCountResp {
 

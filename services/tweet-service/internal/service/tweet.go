@@ -46,6 +46,7 @@ func (s *tweetService) CreateTweet(ctx context.Context, req *tweet.CreateTweetRe
 		ReplyToTweetID: &replyID,
 		UpdatedAt:      time.Now(),
 	}
+
 	err = s.repo.Tweet.Create(ctx, twt)
 	if err != nil {
 		return nil, apperror.Wrap("service", "CreateTweet", "failed to create tweet", err)
@@ -105,7 +106,7 @@ func (s *tweetService) GetTweet(ctx context.Context, req *tweet.GetTweetRequest)
 }
 
 func (s *tweetService) GetTweetsByUser(ctx context.Context, req *tweet.GetTweetsByUserRequest) (*tweet.GetTweetsByUserResponse, error) {
-	twts, total, err := s.repo.Tweet.GetByUser(ctx, req.UserId, int(req.Pagination.Limit), int(req.Pagination.Page-1)*int(req.Pagination.Limit))
+	twts, total, err := s.repo.Tweet.GetByUser(ctx, req.UserId, req.Pagination.Limit, (req.Pagination.Page-1)*req.Pagination.Limit)
 	if err != nil {
 		return nil, apperror.Wrap("service", "GetTweetsByUser", "failed to get tweets by username", err)
 	}
@@ -132,11 +133,12 @@ func (s *tweetService) GetTimeline(ctx context.Context, req *tweet.GetTimelineRe
 		uIds = append(uIds, uId)
 	}
 
-	twts, total, err := s.repo.Tweet.GetTimeline(ctx, models.GetTimelineReq{
-		UserIDs: uIds,
-		Limit:   int(req.Pagination.Limit),
-		Offset:  int((req.Pagination.Page - 1) * req.Pagination.Limit),
-	})
+	twts, total, err := s.repo.Tweet.GetTimeline(
+		ctx,
+		uIds,
+		req.Pagination.Limit,
+		(req.Pagination.Page-1)*req.Pagination.Limit,
+	)
 	if err != nil {
 		return nil, apperror.Wrap("service", "GetTimeline", "failed to get timeline", err)
 	}

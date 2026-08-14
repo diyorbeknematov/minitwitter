@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"github.com/diyorbeknematov/minitwitter/gen/go/common"
 	"github.com/diyorbeknematov/minitwitter/gen/go/tweet"
 	"github.com/diyorbeknematov/minitwitter/services/gateway/internal/dto"
 	"github.com/google/uuid"
@@ -53,7 +54,7 @@ func ToTweet(pb *tweet.Tweet) (dto.Tweet, error) {
 func ToCreateTweetReq(
 	userID uuid.UUID,
 	req dto.CreateTweetReq,
-) (*tweet.CreateTweetRequest) {
+) *tweet.CreateTweetRequest {
 	mediaIDs := make([]string, len(req.MediaIDs))
 	for i, mID := range req.MediaIDs {
 		mediaIDs[i] = mID.String()
@@ -76,19 +77,30 @@ func ToCreateTweetReq(
 func ToUpdateTweetReq(
 	tweetID uuid.UUID,
 	req dto.UpdateTweetReq,
-) (*tweet.UpdateTweetRequest) {
+) *tweet.UpdateTweetRequest {
 	mediaIDs := make([]string, len(req.MediaIDs))
 	for i, mID := range req.MediaIDs {
 		mediaIDs[i] = mID.String()
 	}
 
 	return &tweet.UpdateTweetRequest{
-		TweetId: tweetID.String(),
-		Content: req.Content,
+		TweetId:  tweetID.String(),
+		Content:  req.Content,
+		MediaIds: mediaIDs,
 	}
 }
 
-func ToGetTweetsByUserResponse(
+func ToGetTweetsByUserReq(userID uuid.UUID, req dto.GetTweetByUserReq) *tweet.GetTweetsByUserRequest {
+	return &tweet.GetTweetsByUserRequest{
+		UserId: userID.String(),
+		Pagination: &common.PaginationRequest{
+			Page:  req.Page,
+			Limit: req.Limit,
+		},
+	}
+}
+
+func ToGetTweetsByUserResp(
 	pb *tweet.GetTweetsByUserResponse,
 ) (dto.GetTweetByUserResp, error) {
 
@@ -113,7 +125,7 @@ func ToGetTweetsByUserResponse(
 	}, nil
 }
 
-func ToGetTimelineResponse(
+func ToGetTimelineResp(
 	pb *tweet.GetTimelineResponse,
 ) (dto.GetTimelineResp, error) {
 

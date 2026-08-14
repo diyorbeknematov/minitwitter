@@ -5,13 +5,14 @@ package user;
 option go_package = "github.com/diyorbeknematov/minitwitter/gen/go/user";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 service UserService {
     rpc GetProfile(GetProfileRequest) returns (User);
     rpc UpdateProfile(UpdateProfileRequest) returns (User);
 
-    rpc Follow(FollowRequest) returns (FollowResponse);
-    rpc Unfollow(UnfollowRequest) returns (UnfollowResponse);
+    rpc Follow(FollowRequest) returns (google.protobuf.Empty);
+    rpc Unfollow(UnfollowRequest) returns (google.protobuf.Empty);
 
     rpc GetFollowers(GetFollowersRequest) returns (UsersResponse);
     rpc GetFollowing(GetFollowingRequest) returns (UsersResponse);
@@ -20,6 +21,7 @@ service UserService {
 
     // Internal APIs (other services use these)
     rpc GetUserById(GetUserByIdRequest) returns (User);
+    rpc GetUsersByIds(GetUsersByIdsRequest) returns (UsersResponse);
     rpc GetFollowingIds(GetFollowingIdsRequest) returns (FollowingIdsResponse);
 }
 
@@ -29,7 +31,7 @@ message User {
     string email = 3;
     string name = 4;
     string bio = 5;
-    string avatar_url = 6;
+    string avatar_media_id = 6;
 
     uint64 followers_count = 7;
     uint64 following_count = 8;
@@ -45,7 +47,7 @@ message UpdateProfileRequest {
     string user_id = 1;
     string name = 2;
     string bio = 3;
-    string avatar_url = 4;
+    string avatar_media_id = 4;
 }
 
 message FollowRequest {
@@ -53,17 +55,9 @@ message FollowRequest {
     string following_id = 2;
 }
 
-message FollowResponse {
-    bool success = 1;
-}
-
 message UnfollowRequest {
     string follower_id = 1;
     string following_id = 2;
-}
-
-message UnfollowResponse {
-    bool success = 1;
 }
 
 message GetFollowersRequest {
@@ -91,6 +85,10 @@ message UsersResponse {
 
 message GetUserByIdRequest {
     string id = 1;
+}
+
+message GetUsersByIdsRequest {
+    repeated string user_ids = 1;
 }
 
 message GetFollowingIdsRequest {

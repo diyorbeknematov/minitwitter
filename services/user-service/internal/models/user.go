@@ -7,18 +7,20 @@ import (
 )
 
 type User struct {
-	ID            uuid.UUID  `db:"id"`
-	Username      string     `db:"username"`
-	Email         string     `db:"email"`
-	PasswordHash  string     `db:"password_hash"`
-	Name          string     `db:"name"`
-	Bio           string     `db:"bio"`
-	AvatarMediaID *uuid.UUID `db:"avatar_media_id"`
-	CreatedAt     time.Time  `db:"created_at"`
-	UpdatedAt     time.Time  `db:"updated_at"`
+	ID             uuid.UUID  `db:"id"`
+	Username       string     `db:"username"`
+	Email          string     `db:"email"`
+	PasswordHash   string     `db:"password_hash"`
+	Name           string     `db:"name"`
+	Bio            string     `db:"bio"`
+	AvatarMediaID  *uuid.UUID `db:"avatar_media_id"`
+	FollowersCount int64      `db:"follower_count"`
+	FollowingCount int64      `db:"following_count"`
+	CreatedAt      time.Time  `db:"created_at"`
+	UpdatedAt      time.Time  `db:"updated_at"`
 }
 
 type Token struct {
-	TokenStr     string    `json:"token"`
+	TokenStr  string    `json:"token"`
 	ExpiresAt time.Time `json:"expires_at"`
 }

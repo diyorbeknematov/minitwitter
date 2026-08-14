@@ -29,6 +29,7 @@ type User interface {
 	GetByEmail(context.Context, string) (*models.User, error)
 	GetByUsername(context.Context, string) (*models.User, error)
 	Search(context.Context, string, int, int) ([]models.User, int, error)
+	GetByIDs(context.Context, []string) ([]models.User, error)
 	GetUserFollowers(context.Context, uuid.UUID, int, int) ([]models.User, int, error)
 	GetUserFollowing(ctx context.Context, userID uuid.UUID, limit, offset int) ([]models.User, int, error)
 	Update(context.Context, *models.User) error

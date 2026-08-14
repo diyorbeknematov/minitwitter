@@ -8,6 +8,7 @@ import (
 	"github.com/diyorbek/minitwitter/services/user-service/pkg/apperror"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type userRepo struct {
@@ -62,9 +63,13 @@ func (r *userRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.User, err
 			email,
 			name,
 			bio,
-			avatar_media_id
-		FROM users
-		WHERE id = $1 AND deleted_at IS NULL;
+			avatar_media_id,
+			followers_count,
+			following_count,
+			created_at,
+			updated_at
+		FROM users AS u
+		WHERE u.id = $1 AND u.deleted_at IS NULL;
 	`
 
 	var user models.User
@@ -76,6 +81,10 @@ func (r *userRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.User, err
 		&user.Name,
 		&user.Bio,
 		user.AvatarMediaID,
+		&user.FollowersCount,
+		&user.FollowingCount,
+		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, apperror.Wrap("repository", "GetUserByID", "failed to get user by id", err)
@@ -140,17 +149,74 @@ func (r *userRepo) GetByUsername(ctx context.Context, username string) (*models.
 	return &user, nil
 }
 
+func (r *userRepo) GetByIDs(ctx context.Context, userIDs []string) ([]models.User, error) {
+	query := `
+		SELECT 
+			id,
+			username,
+			email,
+			name,
+			bio,
+			avatar_media_id,
+			followers_count,
+			following_count,
+			created_at,
+			updated_at
+		FROM users AS u
+		WHERE u.id = ANY($1) AND u.deleted_at IS NULL;
+	`
+
+	rows, err := r.db.QueryContext(
+		ctx,
+		query,
+		pq.Array(userIDs),
+	)
+	if err != nil {
+		return nil, apperror.Wrap("repository", "GetUsersByIDs", "failed to execute the query", err)
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+
+		if err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Email,
+			&user.Name,
+			&user.Bio,
+			user.AvatarMediaID,
+			&user.FollowersCount,
+			&user.FollowingCount,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			return nil, apperror.Wrap("repository", "GetUsersByIds", "failed to get users by ids", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, apperror.Wrap("repository", "GetUsersByIds", "failed to check rows for error", err)
+	}
+
+	return users, nil
+}
+
 func (r *userRepo) Search(ctx context.Context, search string, offset, limit int) ([]models.User, int, error) {
 	baseQuery := `
 		SELECT 
 			id,
 			username,
 			name,
-			avatar_media_id
+			avatar_media_id,
+			followers_count
 		FROM users
 		WHERE deleted_at IS NULL 
 	`
-	countQuery := `SELECT COUNT(*) FROM users deleted_at IS NULL `
+	countQuery := `SELECT COUNT(*) FROM users WHERE deleted_at IS NULL `
 	conditions := []string{}
 
 	params := map[string]any{
@@ -160,7 +226,7 @@ func (r *userRepo) Search(ctx context.Context, search string, offset, limit int)
 
 	// Add search condition
 	if search != "" {
-		conditions = append(conditions, "(name || username) ILIKE :search")
+		conditions = append(conditions, "(name ILIKE :search OR username ILIKE :search")
 		params["search"] = "%" + search + "%"
 	}
 
@@ -188,6 +254,8 @@ func (r *userRepo) Search(ctx context.Context, search string, offset, limit int)
 			&user.Username,
 			&user.Name,
 			user.AvatarMediaID,
+			&user.FollowersCount,
+			&user.FollowingCount,
 		); err != nil {
 			return nil, 0, apperror.Wrap("repository", "SearchUser", "failed to scan row", err)
 		}
@@ -216,7 +284,9 @@ func (r *userRepo) GetUserFollowers(ctx context.Context, userID uuid.UUID, limit
 			u.id,
 			u.username,
 			u.name,
-			u.avatar_media_id
+			u.avatar_media_id,
+			u.followers_count,
+			u.following_count
 		FROM users AS u
 		INNER JOIN follows AS f 
 			ON u.id = f.follower_id
@@ -246,6 +316,8 @@ func (r *userRepo) GetUserFollowers(ctx context.Context, userID uuid.UUID, limit
 			&user.Username,
 			&user.Name,
 			user.AvatarMediaID,
+			&user.FollowersCount,
+			&user.FollowingCount,
 		); err != nil {
 			return []models.User{}, 0, apperror.Wrap("repository", "GetUserFallowers", "failed to scan rows", err)
 		}
@@ -271,7 +343,9 @@ func (r *userRepo) GetUserFollowing(ctx context.Context, userID uuid.UUID, limit
 			u.id,
 			u.username,
 			u.name,
-			u.avatar_media_id
+			u.avatar_media_id,
+			u.followers_count,
+			u.following_count,
 		FROM users AS u
 		INNER JOIN follows AS f
 			ON u.id = f.following_id
@@ -304,6 +378,8 @@ func (r *userRepo) GetUserFollowing(ctx context.Context, userID uuid.UUID, limit
 			&user.Username,
 			&user.Name,
 			&user.AvatarMediaID,
+			&user.FollowersCount,
+			&user.FollowingCount,
 		); err != nil {
 			return nil, 0, apperror.Wrap("repository", "GetUserFollowing", "failed to scan row", err)
 		}

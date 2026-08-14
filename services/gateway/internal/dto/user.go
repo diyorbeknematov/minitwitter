@@ -12,6 +12,7 @@ type User struct {
 	Email          string    `json:"email"`
 	Name           string    `json:"name"`
 	Bio            string    `json:"bio"`
+	AvatarMediaID  uuid.UUID `json:"-"`
 	AvatarURL      string    `json:"avatar_url"`
 	FollowersCount uint64    `json:"followers_count"`
 	FollowingCount uint64    `json:"following_count"`
@@ -24,9 +25,9 @@ type UsersResp struct {
 }
 
 type UpdateProfileReq struct {
-	Name      string `json:"name"`
-	Bio       string `json:"bio"`
-	AvatarURL string `json:"avatar_url"`
+	Name          string `json:"name"`
+	Bio           string `json:"bio"`
+	AvatarMediaID uuid.UUID `json:"avatar_media_id"`
 }
 
 type SearchUsersQuery struct {
