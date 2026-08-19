@@ -69,9 +69,20 @@ func (s *tweetService) UpdateTweet(ctx context.Context, req *tweet.UpdateTweetRe
 		return nil, apperror.Wrap("service", "UpdateTweet", "failed to parse twtID to uuid", err)
 	}
 
+	mediaIDs := make([]uuid.UUID, len(req.MediaIds))
+	for i, id := range req.MediaIds {
+		id, err := uuid.Parse(id)
+		if err != nil {
+			return nil, apperror.Wrap("service", "UpdateTweet", "failed to parse media id to uuid", err)
+		}
+
+		mediaIDs[i] = id
+	}
+
 	err = s.repo.Tweet.Update(ctx, models.Tweet{
-		ID:      twtID,
-		Content: req.Content,
+		ID:       twtID,
+		Content:  req.Content,
+		MediaIDs: mediaIDs,
 	})
 	if err != nil {
 		return nil, apperror.Wrap("service", "UpdateTweet", "failed to update tweet", err)
@@ -100,6 +111,8 @@ func (s *tweetService) GetTweet(ctx context.Context, req *tweet.GetTweetRequest)
 		AuthorId:       twt.AuthorID.String(),
 		Content:        twt.Content,
 		ReplyToTweetId: twt.ReplyToTweetID.String(),
+		LikesCount:     twt.LikesCount,
+		RetweetsCount:  twt.RetweetsCount,
 		CreatedAt:      timestamppb.New(twt.CreatedAt),
 		UpdatedAt:      timestamppb.New(twt.UpdatedAt),
 	}, nil
@@ -191,6 +204,8 @@ func (s *tweetService) toProtoTweet(u models.Tweet) *tweet.Tweet {
 		AuthorId:       u.AuthorID.String(),
 		Content:        u.Content,
 		ReplyToTweetId: u.ReplyToTweetID.String(),
+		LikesCount:     u.LikesCount,
+		RetweetsCount:  u.RetweetsCount,
 	}
 }
 

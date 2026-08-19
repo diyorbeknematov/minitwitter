@@ -40,13 +40,15 @@ func (s *userService) GetUserById(ctx context.Context, req *user.GetUserByIdRequ
 	}
 
 	return &user.User{
-		Id:            u.ID.String(),
-		Username:      u.Username,
-		Email:         u.Email,
-		Name:          u.Name,
-		Bio:           u.Bio,
-		AvatarMediaId: u.AvatarMediaID.String(),
-		CreatedAt:     timestamppb.New(u.CreatedAt),
+		Id:             u.ID.String(),
+		Username:       u.Username,
+		Email:          u.Email,
+		Name:           u.Name,
+		Bio:            u.Bio,
+		AvatarMediaId:  u.AvatarMediaID.String(),
+		FollowersCount: uint64(u.FollowersCount),
+		FollowingCount: uint64(u.FollowingCount),
+		CreatedAt:      timestamppb.New(u.CreatedAt),
 	}, nil
 }
 
@@ -245,12 +247,14 @@ func (s *userService) GetFollowingIds(ctx context.Context, req *user.GetFollowin
 
 func (s *userService) toProtoUser(u models.User) *user.User {
 	return &user.User{
-		Id:            u.ID.String(),
-		Username:      u.Username,
-		Email:         u.Email,
-		Name:          u.Name,
-		Bio:           u.Bio,
-		AvatarMediaId: u.AvatarMediaID.String(),
+		Id:             u.ID.String(),
+		Username:       u.Username,
+		Email:          u.Email,
+		Name:           u.Name,
+		Bio:            u.Bio,
+		AvatarMediaId:  u.AvatarMediaID.String(),
+		FollowersCount: uint64(u.FollowersCount),
+		FollowingCount: uint64(u.FollowingCount),
 	}
 }
 

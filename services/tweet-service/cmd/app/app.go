@@ -11,6 +11,7 @@ import (
 	"github.com/diyorbeknematov/minitwitter/services/tweet-service/internal/repository/postgres"
 	"github.com/diyorbeknematov/minitwitter/services/tweet-service/internal/service"
 	"github.com/diyorbeknematov/minitwitter/services/tweet-service/pkg/apperror"
+	"github.com/diyorbeknematov/minitwitter/services/tweet-service/pkg/traceid"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
 )
@@ -39,7 +40,9 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	svc := service.NewService(repo, cfg, logger)
 
 	// gRPC Server
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(traceid.TraceServerInterceptor),
+	)
 
 	tweet.RegisterTweetServiceServer(grpcServer, svc.Tweet)
 

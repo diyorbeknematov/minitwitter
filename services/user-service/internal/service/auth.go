@@ -86,7 +86,7 @@ func (s *authService) Login(ctx context.Context, req *auth.LoginRequest) (*auth.
 	user, err := s.repo.User.GetByEmail(ctx, req.GetEmail())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &auth.LoginResponse{}, apperror.Wrap("service", "Login", "User not found to get by email", apperror.ErrNotFound)
+			return &auth.LoginResponse{}, apperror.Wrap("service", "Login", "User not found to get by email", apperror.ErrUserNotFound)
 		}
 
 		return &auth.LoginResponse{}, apperror.Wrap("service", "Login", "failed to check if user exists", err)

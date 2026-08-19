@@ -14,6 +14,7 @@ import (
 	"github.com/diyorbeknematov/minitwitter/services/notification-service/internal/service"
 	"github.com/diyorbeknematov/minitwitter/services/notification-service/internal/ws"
 	"github.com/diyorbeknematov/minitwitter/services/notification-service/pkg/apperror"
+	"github.com/diyorbeknematov/minitwitter/services/notification-service/pkg/traceid"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -52,7 +53,9 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	svc := service.NewService(repo, cfg, logger)
 
 	// gRPC
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(traceid.TraceServerInterceptor),
+	)
 
 	notification.RegisterNotificationServiceServer(
 		grpcServer,

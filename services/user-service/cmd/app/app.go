@@ -9,6 +9,7 @@ import (
 	"github.com/diyorbek/minitwitter/services/user-service/internal/repository/postgres"
 	"github.com/diyorbek/minitwitter/services/user-service/internal/service"
 	"github.com/diyorbek/minitwitter/services/user-service/pkg/apperror"
+	"github.com/diyorbek/minitwitter/services/user-service/pkg/traceid"
 	"github.com/diyorbeknematov/minitwitter/gen/go/auth"
 	"github.com/diyorbeknematov/minitwitter/gen/go/user"
 
@@ -42,7 +43,9 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	svc := service.NewService(repo, cfg, logger)
 
 	// gRPC Server
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(traceid.TraceServerInterceptor),
+	)
 
 	auth.RegisterAuthServiceServer(grpcServer, svc.Auth)
 	user.RegisterUserServiceServer(grpcServer, svc.User)

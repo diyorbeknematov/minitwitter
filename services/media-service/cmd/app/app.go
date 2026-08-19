@@ -5,13 +5,14 @@ import (
 	"log/slog"
 	"net"
 
-	"github.com/diyorbek/minitwitter/services/user-service/pkg/apperror"
 	"github.com/diyorbeknematov/minitwitter/gen/go/media"
 	"github.com/diyorbeknematov/minitwitter/services/media-service/internal/config"
 	"github.com/diyorbeknematov/minitwitter/services/media-service/internal/repository"
 	"github.com/diyorbeknematov/minitwitter/services/media-service/internal/repository/postgres"
 	"github.com/diyorbeknematov/minitwitter/services/media-service/internal/service"
 	"github.com/diyorbeknematov/minitwitter/services/media-service/internal/storage"
+	"github.com/diyorbeknematov/minitwitter/services/media-service/pkg/apperror"
+	"github.com/diyorbeknematov/minitwitter/services/media-service/pkg/traceid"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
 )
@@ -46,7 +47,9 @@ func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	svc := service.NewMediaService(repo, storage, logger, cfg)
 
 	// gRPC Server
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(traceid.TraceServerInterceptor),
+	)
 
 	media.RegisterMediaServiceServer(grpcServer, svc)
 
