@@ -30,6 +30,9 @@ type GRPCConfig struct {
 type Config struct {
 	Server ServerConfig
 	GRPC   GRPCConfig
+
+	AccessTokenSecret  string
+	RefreshTokenSecret string
 }
 
 func Load() *Config {
@@ -60,6 +63,9 @@ func Load() *Config {
 				Port: cast.ToInt(getEnv("NOTIFICATION_GRPC_PORT", "50054")),
 			},
 		},
+
+		AccessTokenSecret: cast.ToString(getEnv("ACCESS_TOKEN_SECRET", "access-secret")),
+		RefreshTokenSecret: cast.ToString(getEnv("REFRESH_TOKEN_SECRET", "refresh-secret")),
 	}
 }
 

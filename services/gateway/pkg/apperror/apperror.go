@@ -1,6 +1,9 @@
 package apperror
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type AppError struct {
 	Layer   string
@@ -8,6 +11,15 @@ type AppError struct {
 	Message string
 	Err     error
 }
+
+var (
+	ErrNotFound       = errors.New("not found")
+	ErrInvalidInput   = errors.New("invalid input")
+	ErrUnauthorized   = errors.New("unauthorized")
+	ErrUserNotFound   = errors.New("user not found")
+	ErrEmailExists    = errors.New("email already exists")
+	ErrUsernameExists = errors.New("username already exists")
+)
 
 func (e *AppError) Error() string {
 	if e.Err != nil {

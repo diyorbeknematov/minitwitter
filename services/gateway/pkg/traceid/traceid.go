@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 type ctxKey string
@@ -19,4 +21,24 @@ func FromContext(ctx context.Context) string {
 		return id
 	}
 	return "unknown"
+}
+
+func TraceClientInterceptor(
+	ctx context.Context,
+	method string,
+	req, reply any,
+	cc *grpc.ClientConn,
+	invoker grpc.UnaryInvoker,
+	opts ...grpc.CallOption,
+) error {
+
+	traceID := FromContext(ctx)
+
+	ctx = metadata.AppendToOutgoingContext(
+		ctx,
+		"x-trace-id",
+		traceID,
+	)
+
+	return invoker(ctx, method, req, reply, cc, opts...)
 }
