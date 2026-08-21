@@ -39,7 +39,7 @@ type Config struct {
 	RefreshtokenSecret string
 }
 
-func ConfigLoad() *Config {
+func Load() *Config {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Println("Error loading .env file")

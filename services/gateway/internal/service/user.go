@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/diyorbeknematov/minitwitter/gen/go/media"
 	"github.com/diyorbeknematov/minitwitter/gen/go/user"
 	"github.com/diyorbeknematov/minitwitter/services/gateway/internal/dto"
 	"github.com/diyorbeknematov/minitwitter/services/gateway/internal/grpcclient"
@@ -31,6 +32,13 @@ func (s *userService) GetProfile(ctx context.Context, username string) (dto.User
 	if err != nil {
 		return dto.User{}, apperror.Wrap("service", "GetProfile", "failed to parse dto.User", err)
 	}
+
+	avatar, err := s.client.Media.GetMedia(ctx, &media.GetMediaRequest{MediaId: resp.AvatarMediaId})
+	if err != nil {
+		return dto.User{}, apperror.Wrap("service", "GetProfile", "failed to get user avatar", err)
+	}
+
+	dtoUser.AvatarURL = avatar.Url
 
 	return dtoUser, nil
 }
@@ -77,56 +85,254 @@ func (s *userService) Unfollow(ctx context.Context, followerId, followingId uuid
 	return
 }
 
-func (s *userService) GetFollowers(ctx context.Context, userID uuid.UUID, page, limit int32) (dto.UsersResp, error) {
-	resp, err := s.client.User.GetFollowers(ctx, &user.GetFollowersRequest{
-		UserId: userID.String(),
-		Page:   page,
-		Limit:  limit,
-	})
+func (s *userService) GetFollowers(
+	ctx context.Context,
+	userID uuid.UUID,
+	page, limit int32,
+) (dto.UsersResp, error) {
 
+	resp, err := s.client.User.GetFollowers(
+		ctx,
+		&user.GetFollowersRequest{
+			UserId: userID.String(),
+			Page:   page,
+			Limit:  limit,
+		},
+	)
 	if err != nil {
-		return dto.UsersResp{}, apperror.Wrap("service", "GetFollowers", "failed to get followers", err)
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "GetFollowers", "failed to get followers",
+			err,
+		)
 	}
 
 	usersResp, err := mapper.ToUsersResp(resp, page, limit)
 	if err != nil {
-		return dto.UsersResp{}, apperror.Wrap("service", "GetFollowers", "failed to parser to dto.UsersResp", err)
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "GetFollowers", "failed to parse dto.UsersResp",
+			err,
+		)
+	}
+
+	// Collect unique avatar IDs
+	avatarSet := make(map[string]struct{})
+
+	for _, u := range usersResp.Users {
+		if u.AvatarMediaID == uuid.Nil {
+			continue
+		}
+
+		avatarSet[u.AvatarMediaID.String()] = struct{}{}
+	}
+
+	avatarIDs := make([]string, 0, len(avatarSet))
+
+	for id := range avatarSet {
+		avatarIDs = append(avatarIDs, id)
+	}
+
+	// If nobody has an avatar
+	if len(avatarIDs) == 0 {
+		return usersResp, nil
+	}
+
+	// Get all avatars in one RPC
+	mediaResp, err := s.client.Media.GetMedias(
+		ctx,
+		&media.GetMediasRequest{
+			MediaIds: avatarIDs,
+		},
+	)
+	if err != nil {
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "GetFollowers", "failed to get medias",
+			err,
+		)
+	}
+
+	medias, err := mapper.ToMediaMap(mediaResp)
+	if err != nil {
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "GetFollowers", "failed to map medias",
+			err,
+		)
+	}
+
+	// Attach avatar URL to users
+	for i, u := range usersResp.Users {
+		if u.AvatarMediaID == uuid.Nil {
+			continue
+		}
+
+		if m, ok := medias[u.AvatarMediaID.String()]; ok {
+			usersResp.Users[i].AvatarURL = m.Url
+		}
 	}
 
 	return usersResp, nil
 }
 
-func (s *userService) GetFollowing(ctx context.Context, userID uuid.UUID, page, limit int32) (dto.UsersResp, error) {
+func (s *userService) GetFollowing(
+	ctx context.Context,
+	userID uuid.UUID,
+	page, limit int32,
+) (dto.UsersResp, error) {
+
 	resp, err := s.client.User.GetFollowing(ctx, &user.GetFollowingRequest{
 		UserId: userID.String(),
 		Page:   page,
 		Limit:  limit,
 	})
 	if err != nil {
-		return dto.UsersResp{}, apperror.Wrap("service", "GetFollowing", "failed to get following", err)
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "GetFollowing", "failed to get following", 
+			err,
+		)
 	}
 
 	usersResp, err := mapper.ToUsersResp(resp, page, limit)
 	if err != nil {
-		return dto.UsersResp{}, apperror.Wrap("service", "GetFollowing", "failed to paser dto.UsersResp", err)
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "GetFollowing", "failed to parse dto.UsersResp",
+			err,
+		)
+	}
+
+	avatarSet := make(map[string]struct{})
+
+	for _, u := range usersResp.Users {
+		if u.AvatarMediaID == uuid.Nil {
+			continue
+		}
+
+		avatarSet[u.AvatarMediaID.String()] = struct{}{}
+	}
+
+	avatarIDs := make([]string, 0, len(avatarSet))
+
+	for id := range avatarSet {
+		avatarIDs = append(avatarIDs, id)
+	}
+
+	if len(avatarIDs) == 0 {
+		return usersResp, nil
+	}
+
+	mediaResp, err := s.client.Media.GetMedias(
+		ctx,
+		&media.GetMediasRequest{
+			MediaIds: avatarIDs,
+		},
+	)
+	if err != nil {
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "GetFollowing", "failed to get medias",
+			err,
+		)
+	}
+
+	medias, err := mapper.ToMediaMap(mediaResp)
+	if err != nil {
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "GetFollowing", "failed to map medias",
+			err,
+		)
+	}
+
+	for i, u := range usersResp.Users {
+		if u.AvatarMediaID == uuid.Nil {
+			continue
+		}
+
+		if m, ok := medias[u.AvatarMediaID.String()]; ok {
+			usersResp.Users[i].AvatarURL = m.Url
+		}
 	}
 
 	return usersResp, nil
 }
 
-func (s *userService) SearchUsers(ctx context.Context, req dto.SearchUsersQuery) (dto.UsersResp, error) {
-	resp, err := s.client.User.SearchUsers(ctx, &user.SearchUsersRequest{
-		Query: req.Query,
-		Page:  req.Page,
-		Limit: req.Limit,
-	})
+func (s *userService) SearchUsers(
+	ctx context.Context,
+	req dto.SearchUsersQuery,
+) (dto.UsersResp, error) {
+
+	resp, err := s.client.User.SearchUsers(
+		ctx,
+		&user.SearchUsersRequest{
+			Query: req.Query,
+			Page:  req.Page,
+			Limit: req.Limit,
+		},
+	)
 	if err != nil {
-		return dto.UsersResp{}, apperror.Wrap("service", "SearchUsers", "failed to search users", err)
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "SearchUsers", "failed to search users",
+			err,
+		)
 	}
 
 	usersResp, err := mapper.ToUsersResp(resp, req.Page, req.Limit)
 	if err != nil {
-		return dto.UsersResp{}, apperror.Wrap("service", "SearchUsers", "failed to parse dto.UsersResp", err)
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "SearchUsers", "failed to parse dto.UsersResp",
+			err,
+		)
+	}
+
+	// Collect unique avatar IDs
+	avatarSet := make(map[string]struct{})
+
+	for _, u := range usersResp.Users {
+		if u.AvatarMediaID == uuid.Nil {
+			continue
+		}
+
+		avatarSet[u.AvatarMediaID.String()] = struct{}{}
+	}
+
+	avatarIDs := make([]string, 0, len(avatarSet))
+
+	for id := range avatarSet {
+		avatarIDs = append(avatarIDs, id)
+	}
+
+	// No avatars
+	if len(avatarIDs) == 0 {
+		return usersResp, nil
+	}
+
+	// Get all avatars in one RPC
+	mediaResp, err := s.client.Media.GetMedias(
+		ctx,
+		&media.GetMediasRequest{
+			MediaIds: avatarIDs,
+		},
+	)
+	if err != nil {
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "SearchUsers", "failed to get medias",
+			err,
+		)
+	}
+
+	medias, err := mapper.ToMediaMap(mediaResp)
+	if err != nil {
+		return dto.UsersResp{}, apperror.Wrap(
+			"service", "SearchUsers", "failed to map medias",
+			err,
+		)
+	}
+
+	// Attach avatar URL
+	for i, u := range usersResp.Users {
+		if u.AvatarMediaID == uuid.Nil {
+			continue
+		}
+
+		if m, ok := medias[u.AvatarMediaID.String()]; ok {
+			usersResp.Users[i].AvatarURL = m.Url
+		}
 	}
 
 	return usersResp, nil
@@ -145,6 +351,12 @@ func (s *userService) GetUserByID(ctx context.Context, userID uuid.UUID) (dto.Us
 		return dto.User{}, apperror.Wrap("service", "GetUserByID", "failed to parse dto.User", err)
 	}
 
+	avatar, err := s.client.Media.GetMedia(ctx, &media.GetMediaRequest{MediaId: resp.AvatarMediaId})
+	if err != nil {
+		return dto.User{}, apperror.Wrap("service", "GetUserByID", "failed to get user avatar", err)
+	}
+
+	usr.AvatarURL = avatar.Url
+
 	return usr, nil
 }
-

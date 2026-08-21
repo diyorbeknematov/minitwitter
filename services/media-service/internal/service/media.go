@@ -6,12 +6,12 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/diyorbek/minitwitter/services/user-service/pkg/apperror"
 	"github.com/diyorbeknematov/minitwitter/gen/go/media"
 	"github.com/diyorbeknematov/minitwitter/services/media-service/internal/config"
 	"github.com/diyorbeknematov/minitwitter/services/media-service/internal/models"
 	"github.com/diyorbeknematov/minitwitter/services/media-service/internal/repository"
 	"github.com/diyorbeknematov/minitwitter/services/media-service/internal/storage"
+	"github.com/diyorbeknematov/minitwitter/services/media-service/pkg/apperror"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"

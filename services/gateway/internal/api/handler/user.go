@@ -312,7 +312,7 @@ func (h *Handler) GetUserFollowers(c *gin.Context) {
 // @Failure 400,401,404,500 dto.ErrorResponse
 // @Router /following [get]
 // @Security BearerAuth
-func (h *Handler) UserUserFollowing(c *gin.Context) {
+func (h *Handler) GetUserFollowing(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	userID, ok := getUserID(c)

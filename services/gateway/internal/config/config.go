@@ -33,6 +33,7 @@ type Config struct {
 
 	AccessTokenSecret  string
 	RefreshTokenSecret string
+	NotificationWSURL  string
 }
 
 func Load() *Config {
@@ -64,8 +65,9 @@ func Load() *Config {
 			},
 		},
 
-		AccessTokenSecret: cast.ToString(getEnv("ACCESS_TOKEN_SECRET", "access-secret")),
+		AccessTokenSecret:  cast.ToString(getEnv("ACCESS_TOKEN_SECRET", "access-secret")),
 		RefreshTokenSecret: cast.ToString(getEnv("REFRESH_TOKEN_SECRET", "refresh-secret")),
+		NotificationWSURL: cast.ToString(getEnv("NOTIFICATION_WS_URL", "")),
 	}
 }
 
@@ -78,5 +80,9 @@ func getEnv(key string, defaultValue interface{}) interface{} {
 }
 
 func (c ServiceConfig) Address() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
+}
+
+func (c *ServerConfig) Address() string {
 	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }

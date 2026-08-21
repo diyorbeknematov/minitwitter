@@ -17,7 +17,7 @@ import (
 // @Param tweet body dto.CreateTweetReq true "Tweet"
 // @Success 201 {object} dto.Tweet
 // @Success 400,401,404,500 {object} dto.ErrorResponse
-// @Router /tweet [post]
+// @Router / [post]
 // @Security BearerAuth
 func (h *Handler) CreateTweet(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -336,7 +336,7 @@ func (h *Handler) GetTimeline(c *gin.Context) {
 // @Param tweet_id path string true "Tweet ID"
 // @Success 200 {objcet} dto.SuccessResponse
 // @Failure 400,401,404,405 {object} dto.ErrorResponse
-// @Router /like [post]
+// @Router / [post]
 // @Security BearerAuth
 func (h *Handler) LikeTweet(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -388,7 +388,7 @@ func (h *Handler) LikeTweet(c *gin.Context) {
 // @Param tweet_id path string true "Tweet ID"
 // @Success 200 {objcet} dto.SuccessResponse
 // @Failure 400,401,404,405 {object} dto.ErrorResponse
-// @Router /like [delete]
+// @Router /{tweet_id} [delete]
 // @Security BearerAuth
 func (h *Handler) UnlikeTweet(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -440,7 +440,7 @@ func (h *Handler) UnlikeTweet(c *gin.Context) {
 // @Param tweet_id path string true "Tweet ID"
 // @Success 200 {objcet} dto.SuccessResponse
 // @Failure 400,401,404,405 {object} dto.ErrorResponse
-// @Router /retweet [post]
+// @Router / [post]
 // @Security BearerAuth
 func (h *Handler) RetweetTweet(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -492,7 +492,7 @@ func (h *Handler) RetweetTweet(c *gin.Context) {
 // @Param tweet_id path string true "Tweet ID"
 // @Success 200 {objcet} dto.SuccessResponse
 // @Failure 400,401,404,405 {object} dto.ErrorResponse
-// @Router /retweet [delete]
+// @Router /{tweet_id} [delete]
 // @Security BearerAuth
 func (h *Handler) UndoRetweetTweet(c *gin.Context) {
 	ctx := c.Request.Context()
