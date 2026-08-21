@@ -17,6 +17,16 @@ func getUserID(c *gin.Context) (uuid.UUID, bool) {
 	return userID, ok
 }
 
+func getUsername(c *gin.Context) (string, bool) {
+	value, exists := c.Get(middleware.UsernameKey)
+	if !exists {
+		return "", false
+	}
+
+	username, ok := value.(string)
+	return username, ok
+}
+
 func errorResponse(c *gin.Context, status int, message string) {
 	c.AbortWithStatusJSON(status, dto.ErrorResponse{
 		Message: message,

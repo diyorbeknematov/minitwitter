@@ -76,7 +76,7 @@ func (h *Handler) Register(c *gin.Context) {
 // @Produce json
 // @Param login body dto.LoginReq true "Login"
 // @Succes 200 {object} dto.LoginResp
-// @Failure 400,404,409,500 {object} ErrorResponse
+// @Failure 400,404,409,500 {object} dto.ErrorResponse
 // @Router /login [post]
 func (h *Handler) Login(c *gin.Context) {
 	ctx := c.Request.Context()
